@@ -240,12 +240,12 @@
 
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※初回はモデルロードで10秒くらい待ってね♪</span>
+        <span style="color: #9370db;">※初回は30秒くらい待ってね♪（Mistral AIモデルロード中）</span>
     </p>
 
     <div id="modelLoading">
         <div class="spinner"></div>
-        <p>AIモデルをロード中…（初回のみ）</p>
+        <p>Mistral AIモデルをロード中…（重いけど待ってね！）</p>
     </div>
 
     <form id="emopostForm" style="display: none;">
@@ -256,7 +256,7 @@
 
     <div id="loading" style="display: none;">
         <div class="spinner"></div>
-        <p>夢ポエムを紡いでる…</p>
+        <p>夢ポエムを紡いでる…✨</p>
     </div>
 
     <div id="resultArea">
@@ -304,7 +304,7 @@
 
         async function loadModel() {
             try {
-                generator = await pipeline('text-generation', 'Xenova/gpt2');
+                generator = await pipeline('text-generation', 'Xenova/mistral-7b-instruct-v0.1');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
@@ -317,20 +317,22 @@
 
         async function generatePoemWithAI(keyword, retryCount = 0) {
             if (!generator) throw new Error('モデル未ロード');
-            const prompt = `Write a dreamy short emotional poem entirely in Japanese using the keyword "${keyword}". Keep it under 5 lines, poetic and beautiful. Examples: 月の光が優しく包む / 君の笑顔が星になる / 心がふわふわ溶けていく`;
-            const output = await generator(prompt, { 
-                max_new_tokens: 80, 
-                temperature: 0.85, 
+            const messages = [
+                { role: 'system', content: 'あなたは夢のようなエモい日本語ポエムを書く詩人です。5行以内で、キーワードを使って詩的に書いてください。' },
+                { role: 'user', content: `キーワード: ${keyword}` }
+            ];
+            const output = await generator(messages, { 
+                max_new_tokens: 100, 
+                temperature: 0.8, 
                 do_sample: true,
-                repetition_penalty: 1.3,
-                pad_token_id: 50256
+                repetition_penalty: 1.2
             });
-            let poem = output[0].generated_text.replace(prompt, '').trim();
-            // 日本語部分抽出
-            const japaneseMatch = poem.match(/[\u3000-\u9FFF]+/g);
-            poem = japaneseMatch ? japaneseMatch.join('\n').trim() : '';
-            if (!poem && retryCount < 1) {
-                return generatePoemWithAI(keyword, retryCount + 1); // 自動リトライ
+            let poem = output[0].generated_text[output[0].generated_text.length - 1].content.trim();
+            // 日本語抽出 & クリーンアップ
+            const japaneseLines = poem.match(/[\u3000-\u9FFF].*/g) || [];
+            poem = japaneseLines.slice(0, 5).join('\n').trim();
+            if (!poem && retryCount < 3) {
+                return generatePoemWithAI(keyword, retryCount + 1);
             }
             return poem || '夢のようなポエムが浮かばなかったよ…もう一度！';
         };
@@ -418,7 +420,7 @@
             document.getElementById("emopostForm").style.display = "none";
             document.getElementById("loading").style.display = "block";
 
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('タイムアウト')), 30000));
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('タイムアウト')), 60000));
 
             try {
                 const poem = await Promise.race([generatePoemWithAI(keyword), timeoutPromise]);
