@@ -142,6 +142,11 @@
             background: linear-gradient(to right, #d8bfd8, #c0c0ff);
         }
 
+        .cute-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         #resultArea {
             background: #f0f8ff;
             border: 2px dashed #b0c4de;
@@ -168,10 +173,15 @@
             font-size: 1.2em;
             cursor: pointer;
             color: #9370db;
+            background: rgba(255,255,255,0.8);
+            padding: 0.3em;
+            border-radius: 50%;
+            transition: 0.3s;
         }
 
         .copy-icon:hover {
             color: #6a5acd;
+            transform: scale(1.1);
         }
 
         #loading {
@@ -213,6 +223,13 @@
             margin-top: 1em;
         }
 
+        #modelLoading {
+            text-align: center;
+            margin: 2em;
+            color: #9370db;
+            font-size: 1.1em;
+        }
+
         @media screen and (max-width: 600px) {
             h1 { font-size: 1.8em; padding: 0.4em 0.8em; }
             form, #resultArea { padding: 1em; max-width: 100%; width: 100%; }
@@ -229,16 +246,18 @@
 
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※初回は8秒くらい待ってね♪</span>
+        <span style="color: #9370db;">※初回はモデルロードで少し待ってね♪</span>
     </p>
 
-    <form id="emopostForm">
+    <div id="modelLoading">AIモデルをロード中…（初回のみ）</div>
+
+    <form id="emopostForm" style="display: none;">
         <label for="keyword">今日の気分やキーワード</label>
         <input type="text" id="keyword" name="keyword" placeholder="例: 幸せ、疲れた、ドキドキ" required>
         <button type="submit" class="cute-button" id="generateBtn">ポエム生成！</button>
     </form>
 
-    <div id="loading">
+    <div id="loading" style="display: none;">
         <div class="spinner"></div>
         <p>夢ポエムを紡いでる…</p>
     </div>
@@ -247,7 +266,7 @@
         <span class="copy-icon" onclick="copyPoem()" title="ポエムをコピー">📋</span>
     </div>
 
-    <div id="retryButtons">
+    <div id="retryButtons" style="display: none;">
         <button class="cute-button" onclick="retry()">もう一度生成！</button>
         <div id="buttonRow">
             <button id="saveImage" class="cute-button" onclick="saveImage()">画像を保存する</button>
@@ -256,7 +275,7 @@
         <div id="longpressSaveArea"></div>
     </div>
 
-    <footer style="text-align: center; margin evaluator-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
+    <footer style="text-align: center; margin-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
         <p style="font-weight: bold; color: #6a5acd; margin-bottom: 0.5em;">
             ポエム生成の後は…おせち気分で癒しグッズ♪（早割・特典付きも！）
         </p>
@@ -287,8 +306,13 @@
         let generator;
 
         async function loadModel() {
-            if (!generator) {
+            try {
                 generator = await pipeline('text-generation', 'Xenova/distilgpt2');
+                document.getElementById('modelLoading').style.display = 'none';
+                document.getElementById('emopostForm').style.display = 'block';
+            } catch (error) {
+                console.error('モデルロード失敗:', error);
+                document.getElementById('modelLoading').innerHTML = 'ロード失敗…リロードしてね！';
             }
         }
         loadModel();
