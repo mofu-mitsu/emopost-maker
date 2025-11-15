@@ -227,7 +227,7 @@
 
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※初回は15秒くらい待ってね♪</span>
+        <span style="color: #9370db;">※初回は10秒くらい待ってね♪</span>
     </p>
 
     <form id="emopostForm">
@@ -289,19 +289,20 @@
 
         async function loadModel() {
             if (!generator) {
-                generator = await pipeline('text-generation', 'Xenova/gpt2-japanese');
+                generator = await pipeline('text-generation', 'Xenova/gpt2');
             }
         }
         loadModel();
 
         window.generatePoemWithAI = async function(keyword) {
             if (!generator) throw new Error('モデル未ロード');
-            const prompt = `「${keyword}」をテーマにした、夢のような短いエモいポエムを日本語で書いてください。5行以内で、詩的な表現を。`;
+            const prompt = `キーワード「${keyword}」を使った、夢のような短いエモい日本語ポエムを書いて。5行以内で、詩的に。例: 月明かりの下で...`;
             const output = await generator(prompt, { 
                 max_new_tokens: 60, 
                 temperature: 0.9, 
                 do_sample: true,
-                repetition_penalty: 1.2
+                repetition_penalty: 1.2,
+                pad_token_id: 50256
             });
             return output[0].generated_text.replace(prompt, '').trim();
         };
