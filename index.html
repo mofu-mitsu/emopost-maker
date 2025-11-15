@@ -43,8 +43,8 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* 可愛い星空&ハートパーティクルエフェクト（CSSオンリー） */
-        .stars {
+        /* 絵文字パーティクルエフェクト（崩れない！） */
+        .particles {
             position: fixed;
             top: 0;
             left: 0;
@@ -52,68 +52,20 @@
             height: 100%;
             pointer-events: none;
             z-index: -1;
+            font-size: 1.5em;
         }
 
-        .star, .heart {
+        .emoji {
             position: absolute;
-            animation: twinkle 4s infinite ease-in-out;
+            animation: float 10s linear infinite;
+            opacity: 0.7;
         }
 
-        .star {
-            width: 3px;
-            height: 3px;
-            background: #ffd700;
-            border-radius: 50%;
-        }
-
-        .heart {
-            width: 10px;
-            height: 9px;
-            background: #ff69b4;
-            transform: rotate(-45deg);
-            animation: twinkle 5s infinite ease-in-out, floatHeart 6s infinite linear;
-        }
-
-        .heart::before, .heart::after {
-            content: '';
-            position: absolute;
-            width: 5px;
-            height: 8px;
-            background: #ff69b4;
-            border-radius: 5px 5px 0 0;
-            transform: rotate(-45deg);
-            transform-origin: 0 100%;
-        }
-
-        .heart::before { transform: rotate(-90deg) translate(0, -6px); }
-        .heart::after { left: 5px; transform: rotate(90deg) translate(0, -6px); }
-
-        .star:nth-child(odd), .heart:nth-child(odd) { animation-delay: 1s; }
-        .star:nth-child(even), .heart:nth-child(even) { animation-delay: 2s; }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes floatHeart {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
-        }
-
-        /* 流星エフェクト */
-        .shooting-star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: linear-gradient(to right, #ffd700, transparent);
-            box-shadow: 0 0 10px #ffd700;
-            animation: shoot 5s linear infinite;
-        }
-
-        @keyframes shoot {
-            0% { transform: translateX(-100vw) translateY(50vh); opacity: 1; }
-            100% { transform: translateX(100vw) translateY(20vh); opacity: 0; }
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
         }
 
         h1 {
@@ -271,11 +223,11 @@
     </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
+    <div class="particles" id="particles"></div>
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※初回はモデルロードで少し待ってね♪</span>
+        <span style="color: #9370db;">※初回は10秒くらい待ってね♪</span>
     </p>
     <form id="emopostForm">
         <label for="keyword">今日の気分やキーワード</label>
@@ -305,15 +257,20 @@
 
     <footer style="text-align: center; margin-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
         <p style="font-weight: bold; color: #6a5acd; margin-bottom: 0.5em;">
-            ポエム生成の後は…冬の癒しグッズで新年をエモくスタート？（特典付きかも♪）
+            ポエム生成の後は…おせち気分で癒しグッズ♪（早割・特典付きも！）
         </p>
         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1em;">
+            <!-- 楽天アフィ1 -->
             <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
-                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="max-width: 150px; height: auto; border-radius: 0.5em; box-shadow: 0 2px 5px #ccc;" alt="癒しグッズ" title="楽天でチェック♪">
+                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" style="max-width: 200px; height: auto; border-radius: 0.8em; box-shadow: 0 4px 8px #ccc;" alt="癒しグッズ">
             </a>
-            <!-- 追加グッズ例（おせち特集風に癒し系） -->
-            <a href="https://hb.afl.rakuten.co.jp/ichiba/47f68240.4e8a5cf7.47f68241.23ac8815/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ffos-store%2Fy06425881%2F&link_type=pict&ut=..." target="_blank" rel="nofollow sponsored noopener">
-                <img src="https://hbb.afl.rakuten.co.jp/hgb/47f68240.4e8a5cf7.47f68241.23ac8815/?me_id=1401881&item_id=10003733&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ffos-store%2Fcabinet%2Fi%2F10518415%2Fy06425881.jpg%3F_ex%3D80x80&s=80x80&t=pict" style="max-width: 150px; height: auto; border-radius: 0.5em; box-shadow: 0 2px 5px #ccc;" alt="ぬいぐるみ" title="ふわふわ癒し♪">
+            <!-- 楽天アフィ2（ぬいぐるみ） -->
+            <a href="https://hb.afl.rakuten.co.jp/ichiba/47f68240.4e8a5cf7.47f68241.23ac8815/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ffos-store%2Fy06425881%2F" target="_blank" rel="nofollow sponsored noopener">
+                <img src="https://hbb.afl.rakuten.co.jp/hgb/47f68240.4e8a5cf7.47f68241.23ac8815/?me_id=1401881&item_id=10003733&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ffos-store%2Fcabinet%2Fi%2F10518415%2Fy06425881.jpg%3F_ex%3D200x200" style="max-width: 200px; height: auto; border-radius: 0.8em; box-shadow: 0 4px 8px #ccc;" alt="ねこ抱きぐるみ">
+            </a>
+            <!-- 楽天アフィ3（ミルクフォーマー） -->
+            <a href="https://hb.afl.rakuten.co.jp/ichiba/47f693c2.0247a617.47f693c3.1dfacb16/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ftoffy%2Fk-mf1%2F" target="_blank" rel="nofollow sponsored noopener">
+                <img src="https://hbb.afl.rakuten.co.jp/hgb/47f693c2.0247a617.47f693c3.1dfacb16/?me_id=1305788&item_id=10008405&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ftoffy%2Fcabinet%2Fitem%2Fgazou12%2Fk-mf1_t.jpg%3F_ex%3D200x200" style="max-width: 200px; height: auto; border-radius: 0.8em; box-shadow: 0 4px 8px #ccc;" alt="ミルクフォーマー">
             </a>
         </div>
         <div class="back-to-home">
@@ -326,11 +283,10 @@
     <!-- html2canvas CDN -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-    <!-- Transformers.js CDN (module import) -->
+    <!-- Transformers.js (module) -->
     <script type="module">
         import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 
-        // 環境設定（リモートモデル許可）
         env.allowRemoteModels = true;
         env.allowLocalModels = false;
 
@@ -338,19 +294,35 @@
 
         async function loadModel() {
             if (!generator) {
-                generator = await pipeline('text-generation', 'Xenova/DialoGPT-medium');
+                generator = await pipeline('text-generation', 'Xenova/gpt2');
             }
         }
         loadModel();
 
         window.generatePoemWithAI = async function(keyword) {
             if (!generator) throw new Error('モデル未ロード');
-            const today = new Date().toDateString();
-            const prompt = `キーワード: ${keyword}. 夢のような短いポエムを書いて: `;
-            const output = await generator(prompt, { max_length: 80, num_return_sequences: 1, temperature: 0.9 });
+            const prompt = `キーワード: ${keyword}. 夢のような短いポエム:\n`;
+            const output = await generator(prompt, { max_new_tokens: 50, temperature: 0.8, do_sample: true });
             return output[0].generated_text.replace(prompt, '').trim();
         };
 
+        // 絵文字パーティクル生成
+        function createEmojis() {
+            const container = document.getElementById('particles');
+            const emojis = ['⭐', '✨', '🌙', '💖', '🌟', '🦄', '🌸', '🎀'];
+            setInterval(() => {
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji';
+                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                emoji.style.left = Math.random() * 100 + '%';
+                emoji.style.animationDuration = (Math.random() * 8 + 8) + 's';
+                container.appendChild(emoji);
+                setTimeout(() => emoji.remove(), 16000);
+            }, 800);
+        }
+        createEmojis();
+
+        // 共通関数
         window.retry = function() {
             document.getElementById("emopostForm").reset();
             document.getElementById("emopostForm").style.display = "block";
@@ -371,19 +343,17 @@
                 const text = encodeURIComponent(result + "\n#今夜のエモポスト");
                 const url = encodeURIComponent(window.location.href);
                 window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
-                alert('ポエムをクリップボードにコピーしたよ！ Xで貼り付けてポストしてね♪');
-            }).catch(() => {
-                alert('コピー失敗…手動でポエムをコピーしてね！');
+                alert('ポエムをクリップボードにコピー！ Xで貼り付けてね♪');
             });
         };
 
         window.nativeShare = function() {
             const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
-            const text = result + "\n#今夜のエモポスト 生成してみて！\n" + window.location.href;
+            const text = result + "\n#今夜のエモポスト\n" + window.location.href;
             if (navigator.share) {
                 navigator.share({ title: '今夜のエモポストメーカー', text, url: window.location.href });
             } else {
-                alert("共有非対応ブラウザだよ");
+                alert("共有非対応だよ");
             }
         };
 
@@ -393,7 +363,6 @@
                 const link = document.createElement('a');
                 link.download = 'emo_poem.png';
                 link.href = canvas.toDataURL('image/png');
-
                 if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
                     link.click();
                 } else {
@@ -404,46 +373,17 @@
                     img.style.maxWidth = '100%';
                     img.style.border = '2px solid #dda0dd';
                     img.style.borderRadius = '1em';
-                    img.style.marginTop = '1em';
                     imgArea.appendChild(img);
                     const note = document.createElement('p');
                     note.textContent = '※長押しして保存してね♪';
                     note.style.color = '#6a5acd';
                     note.style.fontWeight = 'bold';
                     imgArea.appendChild(note);
-                    alert('長押しで保存だよ！');
                 }
-            });
+            }).catch(() => alert('画像保存失敗…'));
         };
 
-        // 星&ハートアニメーション生成
-        function createParticles() {
-            const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 50; i++) {
-                const particle = document.createElement('div');
-                if (i % 2 === 0) {
-                    particle.className = 'star';
-                } else {
-                    particle.className = 'heart';
-                }
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDuration = (Math.random() * 4 + 3) + 's';
-                starsContainer.appendChild(particle);
-            }
-            // 流星追加
-            setInterval(() => {
-                const shootingStar = document.createElement('div');
-                shootingStar.className = 'shooting-star';
-                shootingStar.style.top = Math.random() * 50 + 20 + '%';
-                shootingStar.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                starsContainer.appendChild(shootingStar);
-                setTimeout(() => shootingStar.remove(), 5000);
-            }, 4000);
-        }
-        createParticles();
-
-        // フォームハンドラー（非モジュール）
+        // フォーム
         document.getElementById("emopostForm").addEventListener("submit", async function (e) {
             e.preventDefault();
             const keyword = this.keyword.value.trim();
@@ -451,8 +391,6 @@
 
             document.getElementById("emopostForm").style.display = "none";
             document.getElementById("loading").style.display = "block";
-            document.getElementById("resultArea").style.display = "none";
-            document.getElementById("retryButtons").style.display = "none";
 
             try {
                 const poem = await window.generatePoemWithAI(keyword);
@@ -465,7 +403,7 @@
                 document.getElementById("retryButtons").style.display = "block";
             } catch (error) {
                 console.error(error);
-                alert('生成失敗…もう一度！（モデルロード中かも？）');
+                alert('生成失敗…リロードしてね！');
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("emopostForm").style.display = "block";
             }
