@@ -13,7 +13,7 @@
     <!-- OGP基本設定 -->
     <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.PNG">
+    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
     <meta property="og:url" content="https://mofu-mitsu.github.io/emopost.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="今夜のエモポストメーカー">
@@ -22,7 +22,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="今夜のエモポストメーカー 🌙✨">
     <meta name="twitter:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-ogp.PNG">
+    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
 
     <style>
         body {
@@ -43,7 +43,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* 可愛い星空パーティクルエフェクト（CSSオンリー） */
+        /* 可愛い星空&ハートパーティクルエフェクト（CSSオンリー） */
         .stars {
             position: fixed;
             top: 0;
@@ -54,28 +54,51 @@
             z-index: -1;
         }
 
-        .star {
+        .star, .heart {
             position: absolute;
-            width: 2px;
-            height: 2px;
+            animation: twinkle 4s infinite ease-in-out;
+        }
+
+        .star {
+            width: 3px;
+            height: 3px;
             background: #ffd700;
             border-radius: 50%;
-            animation: twinkle 3s infinite ease-in-out;
         }
 
-        .star:nth-child(odd) {
-            animation-delay: 1s;
+        .heart {
+            width: 10px;
+            height: 9px;
             background: #ff69b4;
+            transform: rotate(-45deg);
+            animation: twinkle 5s infinite ease-in-out, floatHeart 6s infinite linear;
         }
 
-        .star:nth-child(even) {
-            animation-delay: 2s;
-            background: #dda0dd;
+        .heart::before, .heart::after {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 8px;
+            background: #ff69b4;
+            border-radius: 5px 5px 0 0;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
         }
+
+        .heart::before { transform: rotate(-90deg) translate(0, -6px); }
+        .heart::after { left: 5px; transform: rotate(90deg) translate(0, -6px); }
+
+        .star:nth-child(odd), .heart:nth-child(odd) { animation-delay: 1s; }
+        .star:nth-child(even), .heart:nth-child(even) { animation-delay: 2s; }
 
         @keyframes twinkle {
             0%, 100% { opacity: 0; transform: scale(0); }
             50% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
         }
 
         /* 流星エフェクト */
@@ -252,7 +275,7 @@
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※AI生成なので、日替わりで変化するよ♪</span>
+        <span style="color: #9370db;">※初回はモデルロードで少し待ってね♪</span>
     </p>
     <form id="emopostForm">
         <label for="keyword">今日の気分やキーワード</label>
@@ -282,11 +305,15 @@
 
     <footer style="text-align: center; margin-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
         <p style="font-weight: bold; color: #6a5acd; margin-bottom: 0.5em;">
-            ポエム生成の後は…冬の癒しグッズで新年をエモくスタート？
+            ポエム生成の後は…冬の癒しグッズで新年をエモくスタート？（特典付きかも♪）
         </p>
-        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5em;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1em;">
             <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
-                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="margin:2px; max-width: 80px; height: auto;" alt="癒しグッズ" title="楽天でチェック♪">
+                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="max-width: 150px; height: auto; border-radius: 0.5em; box-shadow: 0 2px 5px #ccc;" alt="癒しグッズ" title="楽天でチェック♪">
+            </a>
+            <!-- 追加グッズ例（おせち特集風に癒し系） -->
+            <a href="https://hb.afl.rakuten.co.jp/ichiba/47f68240.4e8a5cf7.47f68241.23ac8815/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ffos-store%2Fy06425881%2F&link_type=pict&ut=..." target="_blank" rel="nofollow sponsored noopener">
+                <img src="https://hbb.afl.rakuten.co.jp/hgb/47f68240.4e8a5cf7.47f68241.23ac8815/?me_id=1401881&item_id=10003733&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ffos-store%2Fcabinet%2Fi%2F10518415%2Fy06425881.jpg%3F_ex%3D80x80&s=80x80&t=pict" style="max-width: 150px; height: auto; border-radius: 0.5em; box-shadow: 0 2px 5px #ccc;" alt="ぬいぐるみ" title="ふわふわ癒し♪">
             </a>
         </div>
         <div class="back-to-home">
@@ -296,96 +323,49 @@
         </div>
     </footer>
 
-    <!-- CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"></script>
+    <!-- html2canvas CDN -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-    <script>
-        let generator;
+    <!-- Transformers.js CDN (module import) -->
+    <script type="module">
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 
-        // 星アニメーション生成
-        function createStars() {
-            const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                starsContainer.appendChild(star);
-            }
-            // 流星追加
-            setInterval(() => {
-                const shootingStar = document.createElement('div');
-                shootingStar.className = 'shooting-star';
-                shootingStar.style.top = Math.random() * 50 + 20 + '%';
-                shootingStar.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                starsContainer.appendChild(shootingStar);
-                setTimeout(() => shootingStar.remove(), 5000);
-            }, 3000);
-        }
-        createStars();
+        // 環境設定（リモートモデル許可）
+        env.allowRemoteModels = true;
+        env.allowLocalModels = false;
+
+        let generator;
 
         async function loadModel() {
             if (!generator) {
-                const { pipeline, env } = await import('@xenova/transformers');
-                env.allowLocalModels = false;
-                env.useBrowserCache = false;
-                generator = await pipeline('text-generation', 'microsoft/DialoGPT-medium');
+                generator = await pipeline('text-generation', 'Xenova/DialoGPT-medium');
             }
         }
         loadModel();
 
-        document.getElementById("emopostForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
-            const keyword = this.keyword.value.trim();
-            if (!keyword) return alert('キーワード入れてね〜！');
-
-            document.getElementById("emopostForm").style.display = "none";
-            document.getElementById("loading").style.display = "block";
-            document.getElementById("resultArea").style.display = "none";
-            document.getElementById("retryButtons").style.display = "none";
-
-            try {
-                const poem = await generatePoemWithAI(keyword);
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("resultArea").style.display = "block";
-                document.getElementById("resultArea").innerHTML = `
-                    <h2>🌙あなたの夢ポエム🌙</h2>
-                    <p>${poem}</p>
-                `;
-                document.getElementById("retryButtons").style.display = "block";
-            } catch (error) {
-                console.error(error);
-                alert('生成失敗…もう一度！（モデルロード中かも？）');
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("emopostForm").style.display = "block";
-            }
-        });
-
-        async function generatePoemWithAI(keyword) {
+        window.generatePoemWithAI = async function(keyword) {
+            if (!generator) throw new Error('モデル未ロード');
             const today = new Date().toDateString();
-            const seed = keyword + today;
             const prompt = `キーワード: ${keyword}. 夢のような短いポエムを書いて: `;
             const output = await generator(prompt, { max_length: 80, num_return_sequences: 1, temperature: 0.9 });
             return output[0].generated_text.replace(prompt, '').trim();
-        }
+        };
 
-        function retry() {
+        window.retry = function() {
             document.getElementById("emopostForm").reset();
             document.getElementById("emopostForm").style.display = "block";
             document.getElementById("resultArea").style.display = "none";
             document.getElementById("retryButtons").style.display = "none";
             document.getElementById("longpressSaveArea").innerHTML = '';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        };
 
-        function toggleShareMenu() {
+        window.toggleShareMenu = function() {
             const menu = document.getElementById("socialMenu");
             menu.style.display = (menu.style.display === "none") ? "flex" : "none";
-        }
+        };
 
-        function shareOnTwitter() {
+        window.shareOnTwitter = function() {
             const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
             navigator.clipboard.writeText(result).then(() => {
                 const text = encodeURIComponent(result + "\n#今夜のエモポスト");
@@ -395,9 +375,9 @@
             }).catch(() => {
                 alert('コピー失敗…手動でポエムをコピーしてね！');
             });
-        }
+        };
 
-        function nativeShare() {
+        window.nativeShare = function() {
             const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
             const text = result + "\n#今夜のエモポスト 生成してみて！\n" + window.location.href;
             if (navigator.share) {
@@ -405,9 +385,9 @@
             } else {
                 alert("共有非対応ブラウザだよ");
             }
-        }
+        };
 
-        function saveImage() {
+        window.saveImage = function() {
             const target = document.getElementById('resultArea');
             html2canvas(target, { scale: 2, useCORS: true }).then(canvas => {
                 const link = document.createElement('a');
@@ -434,7 +414,62 @@
                     alert('長押しで保存だよ！');
                 }
             });
+        };
+
+        // 星&ハートアニメーション生成
+        function createParticles() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                if (i % 2 === 0) {
+                    particle.className = 'star';
+                } else {
+                    particle.className = 'heart';
+                }
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                starsContainer.appendChild(particle);
+            }
+            // 流星追加
+            setInterval(() => {
+                const shootingStar = document.createElement('div');
+                shootingStar.className = 'shooting-star';
+                shootingStar.style.top = Math.random() * 50 + 20 + '%';
+                shootingStar.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(shootingStar);
+                setTimeout(() => shootingStar.remove(), 5000);
+            }, 4000);
         }
+        createParticles();
+
+        // フォームハンドラー（非モジュール）
+        document.getElementById("emopostForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const keyword = this.keyword.value.trim();
+            if (!keyword) return alert('キーワード入れてね〜！');
+
+            document.getElementById("emopostForm").style.display = "none";
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("resultArea").style.display = "none";
+            document.getElementById("retryButtons").style.display = "none";
+
+            try {
+                const poem = await window.generatePoemWithAI(keyword);
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("resultArea").style.display = "block";
+                document.getElementById("resultArea").innerHTML = `
+                    <h2>🌙あなたの夢ポエム🌙</h2>
+                    <p>${poem}</p>
+                `;
+                document.getElementById("retryButtons").style.display = "block";
+            } catch (error) {
+                console.error(error);
+                alert('生成失敗…もう一度！（モデルロード中かも？）');
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("emopostForm").style.display = "block";
+            }
+        });
     </script>
 </body>
 </html>
