@@ -91,7 +91,7 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回8秒待ってね♪（Gemmaロード中）</span>
+        <span style="color:#9370db;">※初回10秒待ってね♪（StableLMロード中）</span>
     </p>
 
     <div id="modelLoading" class="container">
@@ -143,7 +143,7 @@
         const fallback = ["えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡","ふわふわ〜♡ 心きゅんきゅん溶けちゃうよ\n夢みたいな甘い世界♡ 永遠に続くよぉ？"];
 
         async function loadModel() {
-            try { generator = await pipeline('text-generation', 'Xenova/gemma-2b-it-q4');
+            try { generator = await pipeline('text-generation', 'Xenova/japanese-stablelm-base-alpha-7b');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
