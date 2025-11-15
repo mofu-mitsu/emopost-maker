@@ -152,12 +152,26 @@
             font-size: 1.1em;
             line-height: 1.8;
             display: none;
+            position: relative;
         }
 
         #resultArea h2 {
             font-size: 1.5em;
             color: #6a5acd;
             margin-bottom: 1em;
+        }
+
+        .copy-icon {
+            position: absolute;
+            top: 1em;
+            right: 1em;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: #9370db;
+        }
+
+        .copy-icon:hover {
+            color: #6a5acd;
         }
 
         #loading {
@@ -194,19 +208,6 @@
             flex-wrap: wrap;
         }
 
-        #socialMenu {
-            display: none;
-            flex-direction: column;
-            gap: 0.8em;
-            align-items: center;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         #longpressSaveArea {
             text-align: center;
             margin-top: 1em;
@@ -217,6 +218,7 @@
             form, #resultArea { padding: 1em; max-width: 100%; width: 100%; }
             .cute-button { font-size: 0.95em; padding: 0.6em 1em; margin: 0.4em; }
             #buttonRow { flex-direction: column; gap: 0.6em; }
+            .copy-icon { font-size: 1em; top: 0.8em; right: 0.8em; }
         }
     </style>
 </head>
@@ -227,7 +229,7 @@
 
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※初回は10秒くらい待ってね♪</span>
+        <span style="color: #9370db;">※初回は8秒くらい待ってね♪</span>
     </p>
 
     <form id="emopostForm">
@@ -241,23 +243,20 @@
         <p>夢ポエムを紡いでる…</p>
     </div>
 
-    <div id="resultArea"></div>
+    <div id="resultArea">
+        <span class="copy-icon" onclick="copyPoem()" title="ポエムをコピー">📋</span>
+    </div>
 
     <div id="retryButtons">
         <button class="cute-button" onclick="retry()">もう一度生成！</button>
-        <button class="cute-button" onclick="copyPoem()">ポエムをコピー</button>
         <div id="buttonRow">
             <button id="saveImage" class="cute-button" onclick="saveImage()">画像を保存する</button>
-            <button class="cute-button" onclick="toggleShareMenu()">SNSに共有する</button>
+            <button class="cute-button" onclick="sharePoem()">共有する</button>
         </div>
         <div id="longpressSaveArea"></div>
-        <div id="socialMenu">
-            <button class="cute-button" onclick="shareOnTwitter()">Xで直接ポスト！</button>
-            <button class="cute-button" onclick="nativeShare()">他アプリに共有</button>
-        </div>
     </div>
 
-    <footer style="text-align: center; margin-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
+    <footer style="text-align: center; margin evaluator-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
         <p style="font-weight: bold; color: #6a5acd; margin-bottom: 0.5em;">
             ポエム生成の後は…おせち気分で癒しグッズ♪（早割・特典付きも！）
         </p>
@@ -289,14 +288,14 @@
 
         async function loadModel() {
             if (!generator) {
-                generator = await pipeline('text-generation', 'Xenova/gpt2');
+                generator = await pipeline('text-generation', 'Xenova/distilgpt2');
             }
         }
         loadModel();
 
         window.generatePoemWithAI = async function(keyword) {
             if (!generator) throw new Error('モデル未ロード');
-            const prompt = `キーワード「${keyword}」を使った、夢のような短いエモい日本語ポエムを書いて。5行以内で、詩的に。例: 月明かりの下で...`;
+            const prompt = `Write a dreamy short emotional poem in Japanese using the keyword "${keyword}". Keep it under 5 lines, poetic. Example: Under the moonlight...`;
             const output = await generator(prompt, { 
                 max_new_tokens: 60, 
                 temperature: 0.9, 
@@ -304,7 +303,10 @@
                 repetition_penalty: 1.2,
                 pad_token_id: 50256
             });
-            return output[0].generated_text.replace(prompt, '').trim();
+            let poem = output[0].generated_text.replace(prompt, '').trim();
+            // 英語混じり除去&日本語確保
+            poem = poem.replace(/^[^\u3000-\u9FFF]+/g, '').trim();
+            return poem || '夢のようなポエムが浮かばなかったよ…もう一度！';
         };
 
         function createEmojis() {
@@ -340,19 +342,7 @@
             });
         };
 
-        window.toggleShareMenu = function() {
-            const menu = document.getElementById("socialMenu");
-            menu.style.display = (menu.style.display === "none") ? "flex" : "none";
-        };
-
-        window.shareOnTwitter = function() {
-            const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
-            const text = encodeURIComponent(result + "\n#今夜のエモポスト");
-            const url = encodeURIComponent(window.location.href);
-            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
-        };
-
-        window.nativeShare = function() {
+        window.sharePoem = function() {
             const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
             const text = result + "\n#今夜のエモポスト\n" + window.location.href;
             if (navigator.share) {
@@ -361,7 +351,10 @@
                     text: text 
                 }).catch(() => alert('共有キャンセル'));
             } else {
-                alert("このブラウザでは共有できないよ");
+                // フォールバックでXポスト
+                const encodedText = encodeURIComponent(result + "\n#今夜のエモポスト");
+                const url = encodeURIComponent(window.location.href);
+                window.open(`https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`, "_blank");
             }
         };
 
@@ -404,6 +397,7 @@
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("resultArea").style.display = "block";
                 document.getElementById("resultArea").innerHTML = `
+                    <span class="copy-icon" onclick="copyPoem()" title="ポエムをコピー">📋</span>
                     <h2>🌙あなたの夢ポエム🌙</h2>
                     <p>${poem}</p>
                 `;
