@@ -43,7 +43,7 @@
 
         .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; font-size: 1.5em; }
         .emoji { position: absolute; animation: float 10s linear infinite; opacity: 0.7; }
-        @keyframes float { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; }  100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; } }
+        @keyframes float { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; } }
 
         h1 { font-family: "Kirang Haerang", cursive, sans-serif; font-size: 2.5em; background: #fff; padding: .5em 1em; border: 4px dotted #c0c0ff; border-radius: 1.5em; box-shadow: 0 4px 10px #e6e6fa; margin: 0 auto 1em; }
 
@@ -80,7 +80,7 @@
         @media (max-width:600px) { h1 { font-size:1.8em; } .container, form, #resultArea, #loading, #modelLoading, #retryButtons { padding:1em; width:90%; } .cute-button { font-size:.95em; padding:.6em 1em; } #buttonRow { flex-direction:column; } }
 
         footer { width: 100%; background: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de; margin-top: auto; text-align: center; }
-        .ad-section { margin: 1em 0; padding: 1em; background: #fff; border-radius: 1em; box-shadow: 0 0 8px #dda0dd; }
+        .ad-section { margin: 2em auto; max-width: 500px; padding: 1em; background: #fff; border-radius: 1em; box-shadow: 0 0 8px #dda0dd; }
         .back-to-home { margin-top: 2em; padding: 1em 0; border-top: 2px solid #dda0dd; }
     </style>
 </head>
@@ -91,7 +91,7 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回10秒待ってね♪（軽量モデルロード中）</span>
+        <span style="color:#9370db;">※初回8秒待ってね♪（Gemmaロード中）</span>
     </p>
 
     <div id="modelLoading" class="container">
@@ -121,14 +121,15 @@
         <div id="longpressSaveArea"></div>
     </div>
 
+    <div class="ad-section">
+        <p style="font-weight:bold; color:#6a5acd; margin-bottom:0.5em;">ポエム後はおせちで癒し♪（アフィリエイト）</p>
+        <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
+            <img loading="lazy" src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="margin:2px; max-width:100%; height:auto;" alt="楽天おせち2026" title="楽天おせち2026">
+        </a>
+        <p style="margin-top:0.5em; color:#6a5acd; font-weight:bold;">🎍 楽天おせち特集2026 🎍 最大350円OFF！</p>
+    </div>
+
     <footer>
-        <div class="ad-section">
-            <p style="font-weight:bold; color:#6a5acd; margin-bottom:0.5em;">ポエム後はおせちで癒し♪（アフィリエイト）</p>
-            <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener" style="word-wrap:break-word;">
-                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="margin:2px" alt="楽天おせち2026" title="楽天おせち2026">
-            </a>
-            <p style="margin-top:0.5em; color:#6a5acd; font-weight:bold;">🎍 楽天おせち特集2026 🎍 最大350円OFF！</p>
-        </div>
         <div class="back-to-home">
             <a href="https://mofu-mitsu.github.io/" style="color:#6a5acd; font-weight:bold; text-decoration:none;">TOPへ戻る</a>
         </div>
@@ -142,7 +143,7 @@
         const fallback = ["えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡","ふわふわ〜♡ 心きゅんきゅん溶けちゃうよ\n夢みたいな甘い世界♡ 永遠に続くよぉ？"];
 
         async function loadModel() {
-            try { generator = await pipeline('text-generation', 'Xenova/phi-3-mini-4k-instruct-q4');
+            try { generator = await pipeline('text-generation', 'Xenova/gemma-2b-it-q4');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
@@ -156,21 +157,21 @@
         loadModel();
 
         function isValidPoem(poem) {
-            if (!poem || poem.length < 15) return false;
-            if (!poem.includes('♡') && !poem.includes('えへへ') && !poem.includes('ふわふわ')) return false;
-            const invalid = poem.match(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。きみえへふわキラ\n]/g);
-            if (invalid && invalid.length > 5) return false;
+            if (!poem || poem.length < 20) return false;
+            if (!poem.includes('♡') && !poem.includes('えへへ') && !poem.includes('ふわふわ') && !poem.includes('きゅん')) return false;
+            const invalid = poem.match(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラ]/g);
+            if (invalid && invalid.length > 0) return false;
             return true;
         }
 
         async function generatePoem(kw, retry=0) {
-            if (generator && retry < 3) {
-                const system = "あなたは「みりんてゃ」、地雷系ENFPのあざと可愛い女の子！性格：天然、甘えん坊、依存気味でふわふわ詩を届けるよっ♡ 口調：タメ口、『〜なのっ♡』『〜よぉ？♪』『えへへ〜♡』必須！二人称「きみ」のみ！ 役割：キーワードで短い可愛い詩、5行以内、ひらがなカタカナ漢字絵文字のみ。意味不明・変な漢字・英語・数字絶対禁止！";
-                const messages = [{role:'system',content:system},{role:'user',content:`キーワード: ${kw} で可愛い詩書いて♡`}];
+            if (generator && retry < 4) {
+                const system = "あなたは「みりんてゃ」、地雷系ENFPのあざと可愛い女の子！性格：天然、甘えん坊、依存気味でふわふわ詩を届けるよっ♡ 口調：タメ口、『〜なのっ♡』『〜よぉ？♪』『えへへ〜♡』必須！二人称「きみ」のみ！ 役割：キーワードで短い可愛い日本語詩、5行以内、ひらがなカタカナ漢字絵文字のみ。英語・数字・意味不明・変漢字絶対禁止！";
+                const messages = [{role:'system',content:system},{role:'user',content:`キーワード: ${kw} で可愛い日本語詩書いて♡`}];
                 try {
-                    const out = await generator(messages, {max_new_tokens:80,temperature:0.7,do_sample:true,repetition_penalty:1.6,top_p:0.92});
+                    const out = await generator(messages, {max_new_tokens:70,temperature:0.65,do_sample:true,repetition_penalty:1.7,top_p:0.93});
                     let poem = out[0].generated_text[out[0].generated_text.length-1].content.trim();
-                    poem = poem.split('\n').map(l => l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。きみえへふわキラ]/g,'').trim()).filter(l => l).slice(0,5).join('\n');
+                    poem = poem.split('\n').map(l => l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラ]/g,'').trim()).filter(l => l).slice(0,5).join('\n');
                     if (isValidPoem(poem)) return poem;
                 } catch {}
                 return generatePoem(kw, retry+1);
