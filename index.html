@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今夜のエモポストメーカー 🌙✨</title>
+    <link rel="icon" type="image/x-icon" href="https://mofu-mitsu.github.io/favicon.ico">
+    <meta name="description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
+    <meta name="keywords" content="エモポスト, ポエム生成, 感情表現, 夢ポエム, AIツール">
+    <meta name="author" content="mofu-mitsu">
+    <meta name="google-site-verification" content="asXFHz9t9b5MSUrHRfKPT3fYOs-qxfbJCM56p1ONUAM" />
+    
+    <!-- OGP基本設定 -->
+    <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
+    <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
+    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
+    <meta property="og:url" content="https://mofu-mitsu.github.io/emopost.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="今夜のエモポストメーカー">
+    
+    <!-- Twitterカード -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="今夜のエモポストメーカー 🌙✨">
+    <meta name="twitter:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
+    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
+
+    <style>
+        body {
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            background: linear-gradient(270deg, #e6f3ff, #f0e6ff, #ffe6f8);
+            background-size: 600% 600%;
+            animation: starryBG 25s ease infinite;
+            text-align: center;
+            padding: 2em;
+            color: #555;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes starryBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 星とハートのパーティクルエフェクト（画像不要） */
+        .particles::before,
+        .particles::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle 4px, #ffd700 70%, transparent 80%), /* 星 */
+                radial-gradient(circle 6px, #ff69b4 60%, transparent 70%), /* ハート風 */
+                radial-gradient(circle 3px, #dda0dd 80%, transparent 90%);
+            background-size: 30% 30%;
+            animation: floatParticles 80s linear infinite;
+            opacity: 0.6;
+            z-index: -1;
+        }
+
+        @keyframes floatParticles {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 120% 120%; }
+        }
+
+        h1 {
+            font-family: "Kirang Haerang", cursive, "Hiragino Kaku Gothic ProN", sans-serif;
+            font-size: 2.5em;
+            background-color: #ffffff;
+            padding: 0.5em 1em;
+            border: 4px dotted #c0c0ff;
+            border-radius: 1.5em;
+            display: inline-block;
+            box-shadow: 0 4px 10px #e6e6fa;
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #87ceeb, #dda0dd, #ffb6c1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px #f0e6ff;
+        }
+
+        form, #resultArea {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #ffffffcc;
+            border-radius: 1em;
+            padding: 2em;
+            box-shadow: 0 0 10px #b0c4de;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 0.2em;
+            font-weight: bold;
+            color: #6a5acd;
+            text-shadow: 1px 1px 0 #fff;
+            font-size: 1.05em;
+        }
+
+        input {
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            border: 2px solid #c0c0ff;
+            border-radius: 1em;
+            padding: 0.5em 1em;
+            font-size: 1em;
+            box-shadow: 0 0 8px #e6e6fa;
+            transition: all 0.3s ease-in-out;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #f8f8ff;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 15px #b0c4de;
+            border-color: #9370db;
+        }
+
+        .cute-button {
+            background: linear-gradient(to right, #e6e6fa, #dda0dd);
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 0.8em 1.5em;
+            border-radius: 2em;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 0.5em;
+            box-shadow: 0 4px 6px #ccc;
+        }
+
+        .cute-button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(to right, #d8bfd8, #c0c0ff);
+        }
+
+        #resultArea {
+            background: #f0f8ff;
+            border: 2px dashed #b0c4de;
+            border-radius: 1.5em;
+            padding: 2em;
+            box-shadow: 0 4px 12px #e6e6fa;
+            color: #4b0082;
+            font-size: 1.1em;
+            line-height: 1.8;
+            display: none;
+        }
+
+        #resultArea h2 {
+            font-size: 1.5em;
+            color: #6a5acd;
+            margin-bottom: 1em;
+        }
+
+        #loading {
+            display: none;
+            margin-top: 2em;
+        }
+
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #dda0dd;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 1em auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #retryButtons {
+            display: none;
+            text-align: center;
+            margin-top: 1.5em;
+        }
+
+        #buttonRow {
+            display: flex;
+            justify-content: center;
+            gap: 1em;
+            margin-top: 1em;
+            flex-wrap: wrap;
+        }
+
+        #socialMenu {
+            display: none;
+            flex-direction: column;
+            gap: 0.8em;
+            align-items: center;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #longpressSaveArea {
+            text-align: center;
+            margin-top: 1em;
+        }
+
+        @media screen and (max-width: 600px) {
+            h1 { font-size: 1.8em; padding: 0.4em 0.8em; }
+            form, #resultArea { padding: 1em; max-width: 100%; width: 100%; }
+            .cute-button { font-size: 0.95em; padding: 0.6em 1em; margin: 0.4em; }
+            #buttonRow { flex-direction: column; gap: 0.6em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles"></div>
+    <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
+    <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
+        今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
+        <span style="color: #9370db;">※AI生成なので、日替わりで変化するよ♪</span>
+    </p>
+    <form id="emopostForm">
+        <label for="keyword">今日の気分やキーワード</label>
+        <input type="text" id="keyword" name="keyword" placeholder="例: 幸せ、疲れた、ドキドキ" required>
+        <button type="submit" class="cute-button" id="generateBtn">ポエム生成！</button>
+    </form>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>夢ポエムを紡いでる…</p>
+    </div>
+
+    <div id="resultArea"></div>
+
+    <div id="retryButtons">
+        <button class="cute-button" onclick="retry()">もう一度生成！</button>
+        <div id="buttonRow">
+            <button id="saveImage" class="cute-button" onclick="saveImage()">画像を保存する</button>
+            <button class="cute-button" onclick="toggleShareMenu()">SNSに共有する</button>
+        </div>
+        <div id="longpressSaveArea"></div>
+        <div id="socialMenu">
+            <button class="cute-button" onclick="shareOnTwitter()">X（Twitter）でシェア</button>
+            <button class="cute-button" onclick="nativeShare()">共有</button>
+        </div>
+    </div>
+
+    <footer style="text-align: center; margin-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
+        <p style="font-weight: bold; color: #6a5acd; margin-bottom: 0.5em;">
+            ポエム生成の後は…夢のようなグッズで癒されてみない？
+        </p>
+        <!-- 仮の商品リンク（みつきが後で差し替えやすいように） -->
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5em;">
+            <a href="https://example.com/item1" target="_blank"><img src="https://example.com/image1.jpg" alt="商品1" style="margin:2px;" /></a>
+        </div>
+        <div class="back-to-home">
+            <p style="margin-top: 2em;">
+                <a href="https://mofu-mitsu.github.io/" style="text-decoration: none; font-weight: bold; color: #6a5acd;">TOPへ戻る</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@2.17.1/dist/transformers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <script>
+        let generator;
+
+        async function loadModel() {
+            if (!generator) {
+                generator = await pipeline('text-generation', 'microsoft/DialoGPT-medium');
+            }
+        }
+        loadModel();
+
+        document.getElementById("emopostForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const keyword = this.keyword.value.trim();
+            if (!keyword) return alert('キーワード入れてね〜！');
+
+            document.getElementById("emopostForm").style.display = "none";
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("resultArea").style.display = "none";
+            document.getElementById("retryButtons").style.display = "none";
+
+            try {
+                const poem = await generatePoemWithAI(keyword);
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("resultArea").style.display = "block";
+                document.getElementById("resultArea").innerHTML = `
+                    <h2>🌙あなたの夢ポエム🌙</h2>
+                    <p>${poem}</p>
+                `;
+                document.getElementById("retryButtons").style.display = "block";
+            } catch (error) {
+                alert('生成失敗…もう一度！');
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("emopostForm").style.display = "block";
+            }
+        });
+
+        async function generatePoemWithAI(keyword) {
+            const today = new Date().toDateString();
+            const seed = keyword + today;
+            const prompt = `キーワード: ${keyword}. 夢のような短いポエムを書いて: `;
+            const output = await generator(prompt, { max_length: 80, num_return_sequences: 1, temperature: 0.9 });
+            return output[0].generated_text.replace(prompt, '').trim();
+        }
+
+        function retry() {
+            document.getElementById("emopostForm").reset();
+            document.getElementById("emopostForm").style.display = "block";
+            document.getElementById("resultArea").style.display = "none";
+            document.getElementById("retryButtons").style.display = "none";
+            document.getElementById("longpressSaveArea").innerHTML = '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleShareMenu() {
+            const menu = document.getElementById("socialMenu");
+            menu.style.display = (menu.style.display === "none") ? "flex" : "none";
+        }
+
+        function shareOnTwitter() {
+            const result = document.getElementById("resultArea").innerText.trim();
+            const text = encodeURIComponent(result + "\n#今夜のエモポスト で生成してみて！");
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+        }
+
+        function nativeShare() {
+            const result = document.getElementById("resultArea").innerText.trim();
+            const text = result + "\n生成してみて！\n" + window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: '今夜のエモポストメーカー', text, url: window.location.href });
+            } else {
+                alert("共有非対応ブラウザだよ");
+            }
+        }
+
+        function saveImage() {
+            const target = document.getElementById('resultArea');
+            html2canvas(target, { scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'emo_poem.png';
+                link.href = canvas.toDataURL('image/png');
+
+                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                    link.click();
+                } else {
+                    const imgArea = document.getElementById('longpressSaveArea');
+                    imgArea.innerHTML = '';
+                    const img = new Image();
+                    img.src = canvas.toDataURL('image/png');
+                    img.style.maxWidth = '100%';
+                    img.style.border = '2px solid #dda0dd';
+                    img.style.borderRadius = '1em';
+                    img.style.marginTop = '1em';
+                    imgArea.appendChild(img);
+                    const note = document.createElement('p');
+                    note.textContent = '※長押しして保存してね♪';
+                    note.style.color = '#6a5acd';
+                    note.style.fontWeight = 'bold';
+                    imgArea.appendChild(note);
+                    alert('長押しで保存だよ！');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
