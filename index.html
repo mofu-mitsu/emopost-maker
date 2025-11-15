@@ -184,9 +184,10 @@
             transform: scale(1.1);
         }
 
-        #loading {
-            display: none;
+        #loading, #modelLoading {
+            display: block;
             margin-top: 2em;
+            text-align: center;
         }
 
         .spinner {
@@ -223,13 +224,6 @@
             margin-top: 1em;
         }
 
-        #modelLoading {
-            text-align: center;
-            margin: 2em;
-            color: #9370db;
-            font-size: 1.1em;
-        }
-
         @media screen and (max-width: 600px) {
             h1 { font-size: 1.8em; padding: 0.4em 0.8em; }
             form, #resultArea { padding: 1em; max-width: 100%; width: 100%; }
@@ -246,15 +240,18 @@
 
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※初回はモデルロードで少し待ってね♪</span>
+        <span style="color: #9370db;">※初回はモデルロードで10秒くらい待ってね♪</span>
     </p>
 
-    <div id="modelLoading">AIモデルをロード中…（初回のみ）</div>
+    <div id="modelLoading">
+        <div class="spinner"></div>
+        <p>AIモデルをロード中…（初回のみ）</p>
+    </div>
 
     <form id="emopostForm" style="display: none;">
         <label for="keyword">今日の気分やキーワード</label>
         <input type="text" id="keyword" name="keyword" placeholder="例: 幸せ、疲れた、ドキドキ" required>
-        <button type="submit" class="cute-button" id="generateBtn">ポエム生成！</button>
+        <button type="submit" class="cute-button" id="generateBtn" disabled>ポエム生成！</button>
     </form>
 
     <div id="loading" style="display: none;">
@@ -303,33 +300,38 @@
         env.allowRemoteModels = true;
         env.allowLocalModels = false;
 
-        let generator;
+        let generator = null;
 
         async function loadModel() {
             try {
-                generator = await pipeline('text-generation', 'Xenova/distilgpt2');
+                generator = await pipeline('text-generation', 'Xenova/gpt2');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
+                document.getElementById('generateBtn').disabled = false;
             } catch (error) {
                 console.error('モデルロード失敗:', error);
-                document.getElementById('modelLoading').innerHTML = 'ロード失敗…リロードしてね！';
+                document.getElementById('modelLoading').innerHTML = '<p style="color:red;">ロード失敗…リロードしてね！</p>';
             }
         }
         loadModel();
 
-        window.generatePoemWithAI = async function(keyword) {
+        async function generatePoemWithAI(keyword, retryCount = 0) {
             if (!generator) throw new Error('モデル未ロード');
-            const prompt = `Write a dreamy short emotional poem in Japanese using the keyword "${keyword}". Keep it under 5 lines, poetic. Example: Under the moonlight...`;
+            const prompt = `Write a dreamy short emotional poem entirely in Japanese using the keyword "${keyword}". Keep it under 5 lines, poetic and beautiful. Examples: 月の光が優しく包む / 君の笑顔が星になる / 心がふわふわ溶けていく`;
             const output = await generator(prompt, { 
-                max_new_tokens: 60, 
-                temperature: 0.9, 
+                max_new_tokens: 80, 
+                temperature: 0.85, 
                 do_sample: true,
-                repetition_penalty: 1.2,
+                repetition_penalty: 1.3,
                 pad_token_id: 50256
             });
             let poem = output[0].generated_text.replace(prompt, '').trim();
-            // 英語混じり除去&日本語確保
-            poem = poem.replace(/^[^\u3000-\u9FFF]+/g, '').trim();
+            // 日本語部分抽出
+            const japaneseMatch = poem.match(/[\u3000-\u9FFF]+/g);
+            poem = japaneseMatch ? japaneseMatch.join('\n').trim() : '';
+            if (!poem && retryCount < 1) {
+                return generatePoemWithAI(keyword, retryCount + 1); // 自動リトライ
+            }
             return poem || '夢のようなポエムが浮かばなかったよ…もう一度！';
         };
 
@@ -354,6 +356,7 @@
             document.getElementById("resultArea").style.display = "none";
             document.getElementById("retryButtons").style.display = "none";
             document.getElementById("longpressSaveArea").innerHTML = '';
+            document.getElementById("loading").style.display = "none";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -375,7 +378,6 @@
                     text: text 
                 }).catch(() => alert('共有キャンセル'));
             } else {
-                // フォールバックでXポスト
                 const encodedText = encodeURIComponent(result + "\n#今夜のエモポスト");
                 const url = encodeURIComponent(window.location.href);
                 window.open(`https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`, "_blank");
@@ -416,19 +418,21 @@
             document.getElementById("emopostForm").style.display = "none";
             document.getElementById("loading").style.display = "block";
 
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('タイムアウト')), 30000));
+
             try {
-                const poem = await window.generatePoemWithAI(keyword);
+                const poem = await Promise.race([generatePoemWithAI(keyword), timeoutPromise]);
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("resultArea").style.display = "block";
                 document.getElementById("resultArea").innerHTML = `
                     <span class="copy-icon" onclick="copyPoem()" title="ポエムをコピー">📋</span>
                     <h2>🌙あなたの夢ポエム🌙</h2>
-                    <p>${poem}</p>
+                    <p>${poem.replace(/\n/g, '<br>')}</p>
                 `;
                 document.getElementById("retryButtons").style.display = "block";
             } catch (error) {
                 console.error(error);
-                alert('生成失敗…リロードしてね！');
+                alert('生成失敗またはタイムアウト…リトライかリロードしてね！');
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("emopostForm").style.display = "block";
             }
