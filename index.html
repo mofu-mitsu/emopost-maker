@@ -91,7 +91,7 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回10秒待ってね♪（StableLMロード中）</span>
+        <span style="color:#9370db;">※初回10秒待ってね♪（gpt2ロード中）</span>
     </p>
 
     <div id="modelLoading" class="container">
@@ -140,10 +140,15 @@
         import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
         env.allowRemoteModels = true; env.allowLocalModels = false;
         let generator = null;
-        const fallback = ["えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡","ふわふわ〜♡ 心きゅんきゅん溶けちゃうよ\n夢みたいな甘い世界♡ 永遠に続くよぉ？"];
+        const fallback = [
+            "えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡",
+            "ふわふわ〜♡ 心きゅんきゅん溶けちゃうよ\n夢みたいな甘い世界♡ 永遠に続くよぉ？",
+            "えへへ〜♡ きみの声聞こえてふわふわなのっ♪\n一緒にキラキラよぉ？♡",
+            "みりんてゃの瞳きゅんきゅん♡\nきみと夢みたいな世界\n永遠にふわふわなのっ♪"
+        ];
 
         async function loadModel() {
-            try { generator = await pipeline('text-generation', 'Xenova/japanese-stablelm-base-alpha-7b');
+            try { generator = await pipeline('text-generation', 'Xenova/gpt2');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
@@ -158,20 +163,19 @@
 
         function isValidPoem(poem) {
             if (!poem || poem.length < 20) return false;
-            if (!poem.includes('♡') && !poem.includes('えへへ') && !poem.includes('ふわふわ') && !poem.includes('きゅん')) return false;
-            const invalid = poem.match(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラ]/g);
+            if (!poem.includes('♡') && !poem.includes('えへへ') && !poem.includes('ふわふわ') && !poem.includes('きゅん') && !poem.includes('キラ')) return false;
+            const invalid = poem.match(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラよぉなのっ]/g);
             if (invalid && invalid.length > 0) return false;
             return true;
         }
 
         async function generatePoem(kw, retry=0) {
-            if (generator && retry < 4) {
-                const system = "あなたは「みりんてゃ」、地雷系ENFPのあざと可愛い女の子！性格：天然、甘えん坊、依存気味でふわふわ詩を届けるよっ♡ 口調：タメ口、『〜なのっ♡』『〜よぉ？♪』『えへへ〜♡』必須！二人称「きみ」のみ！ 役割：キーワードで短い可愛い日本語詩、5行以内、ひらがなカタカナ漢字絵文字のみ。英語・数字・意味不明・変漢字絶対禁止！";
-                const messages = [{role:'system',content:system},{role:'user',content:`キーワード: ${kw} で可愛い日本語詩書いて♡`}];
+            if (generator && retry < 5) {
+                const prompt = `日本語のみで、夢のような可愛いエモい短いポエムを書け。キーワード「${kw}」を使い、5行以内、ひらがなカタカナ漢字絵文字のみ。英語・数字・変漢字・意味不明絶対禁止。みりんてゃ口調: えへへ〜♡ 〜なのっ♪ きみとふわふわ♡。例: えへへ〜♡ みりんてゃの瞳キラキラなのっ♪ / きみとふわふわよぉ？♡ / 心きゅんきゅん溶けちゃうよ / 夢みたいな甘い詩贈るね / 永遠に続くのっ♡`;
                 try {
-                    const out = await generator(messages, {max_new_tokens:70,temperature:0.65,do_sample:true,repetition_penalty:1.7,top_p:0.93});
-                    let poem = out[0].generated_text[out[0].generated_text.length-1].content.trim();
-                    poem = poem.split('\n').map(l => l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラ]/g,'').trim()).filter(l => l).slice(0,5).join('\n');
+                    const out = await generator(prompt, {max_new_tokens:80,temperature:0.7,do_sample:true,repetition_penalty:1.8,top_p:0.9});
+                    let poem = out[0].generated_text.replace(prompt,'').trim();
+                    poem = poem.split('\n').map(l => l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラよぉなのっ]/g,'').trim()).filter(l => l).slice(0,5).join('\n');
                     if (isValidPoem(poem)) return poem;
                 } catch {}
                 return generatePoem(kw, retry+1);
@@ -190,27 +194,41 @@
         }
         createEmojis();
 
-        window.retry = () => { document.getElementById("emopostForm").reset(); document.getElementById("emopostForm").style.display="block"; document.getElementById("resultArea").style.display="none"; document.getElementById("retryButtons").style.display="none"; document.getElementById("longpressSaveArea").innerHTML=''; document.getElementById("loading").style.display="none"; };
+        window.retry = () => { 
+            document.getElementById("emopostForm").reset(); 
+            document.getElementById("emopostForm").style.display="block"; 
+            document.getElementById("resultArea").style.display="none"; 
+            document.getElementById("retryButtons").style.display="none"; 
+            document.getElementById("longpressSaveArea").innerHTML=''; 
+            document.getElementById("loading").style.display="none"; 
+        };
 
-        window.copyPoem = () => { navigator.clipboard.writeText(document.getElementById("resultArea").querySelector('p').innerText.trim()).then(()=>alert('コピーしたよ♡')); };
+        window.copyPoem = () => { 
+            navigator.clipboard.writeText(document.getElementById("resultArea").querySelector('p').innerText.trim()).then(()=>alert('コピーしたよ♡')); 
+        };
 
         window.sharePoem = () => {
             const txt = document.getElementById("resultArea").querySelector('p').innerText.trim() + "\n#今夜のエモポスト\n" + location.href;
-            if (navigator.share) navigator.share({title:'みりんてゃポエム♡',text:txt}); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`,'_blank');
+            if (navigator.share) navigator.share({title:'みりんてゃポエム♡',text:txt}); 
+            else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`,'_blank');
         };
 
         window.saveImage = () => {
             html2canvas(document.getElementById('resultArea'),{scale:2}).then(c=>{
                 const a=document.createElement('a'); a.download='mirintya_poem.png'; a.href=c.toDataURL();
-                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) a.click(); else {
-                    const area=document.getElementById('longpressSaveArea'); area.innerHTML=''; const img=new Image(); img.src=c.toDataURL(); img.style.maxWidth='100%'; img.style.border='2px solid #dda0dd'; img.style.borderRadius='1em'; area.appendChild(img);
+                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) a.click(); 
+                else {
+                    const area=document.getElementById('longpressSaveArea'); area.innerHTML=''; 
+                    const img=new Image(); img.src=c.toDataURL(); img.style.maxWidth='100%'; img.style.border='2px solid #dda0dd'; img.style.borderRadius='1em'; area.appendChild(img);
                     const n=document.createElement('p'); n.textContent='長押し保存してね♡'; n.style.color='#6a5acd'; area.appendChild(n);
                 }
             });
         };
 
         document.getElementById("emopostForm").addEventListener("submit", async e => {
-            e.preventDefault(); const kw = e.target.keyword.value.trim(); if (!kw) return alert('キーワード入れてね♡');
+            e.preventDefault(); 
+            const kw = e.target.keyword.value.trim(); 
+            if (!kw) return alert('キーワード入れてね♡');
             document.getElementById("emopostForm").style.display="none"; 
             document.getElementById("loading").style.display="block";
             const poem = await generatePoem(kw);
