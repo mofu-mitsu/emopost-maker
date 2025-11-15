@@ -149,7 +149,7 @@
 
         async function loadModel() {
             try { 
-                generator = await pipeline('text-generation', 'rinna/japanese-gpt2-medium');
+                generator = await pipeline('text-generation', 'Xenova/gpt2');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
@@ -171,18 +171,18 @@
             return true;
         }
 
-        async function generatePoem(kw, retry = 0) {
+        async function generatePoem(kw, retry=0) {
             if (generator && retry < 5) {
                 const prompt = `日本語のみで、夢のような可愛いエモい短いポエムを書け。キーワード「${kw}」を使い、5行以内、ひらがなカタカナ漢字絵文字のみ。英語・数字・変漢字・意味不明絶対禁止。みりんてゃ口調: えへへ〜♡ 〜なのっ♪ きみとふわふわ♡。例: えへへ〜♡ みりんてゃの瞳キラキラなのっ♪ / きみとふわふわよぉ？♡ / 心きゅんきゅん溶けちゃうよ / 夢みたいな甘い詩贈るね / 永遠に続くのっ♡`;
                 try {
-                    const out = await generator(prompt, {max_new_tokens: 80, temperature: 0.7, do_sample: true, repetition_penalty: 1.8, top_p: 0.9});
-                    let poem = out[0].generated_text.replace(prompt, '').trim();
-                    poem = poem.split('\n').map(l => l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラよぉなのっ]/g, '').trim()).filter(l => l).slice(0, 5).join('\n');
+                    const out = await generator(prompt, {max_new_tokens:80,temperature:0.7,do_sample:true,repetition_penalty:1.8,top_p:0.9});
+                    let poem = out[0].generated_text.replace(prompt,'').trim();
+                    poem = poem.split('\n').map(l => l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラよぉなのっ]/g,'').trim()).filter(l => l).slice(0,5).join('\n');
                     if (isValidPoem(poem)) return poem;
                 } catch {}
-                return generatePoem(kw, retry + 1);
+                return generatePoem(kw, retry+1);
             }
-            return fallback[Math.floor(Math.random() * fallback.length)];
+            return fallback[Math.floor(Math.random()*fallback.length)];
         }
 
         function createEmojis() {
