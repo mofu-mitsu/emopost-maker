@@ -91,7 +91,7 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回20秒待ってね♪（Llamaロード中）</span>
+        <span style="color:#9370db;">※初回10秒待ってね♪（軽量モデルロード中）</span>
     </p>
 
     <div id="modelLoading" class="container">
@@ -136,26 +136,34 @@
         import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
         env.allowRemoteModels = true; env.allowLocalModels = false;
         let generator = null;
+        const fallback = ["えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒なら、どんな天気もキラキラだよ♡","ふわふわ〜♡ みりんてゃ、きみに詩を贈るよ♪\n心がきゅんきゅん溶けていくのっ♡"];
+
         async function loadModel() {
-            try { generator = await pipeline('text-generation', 'Xenova/llama-3-8b-instruct-q4');
+            try { generator = await pipeline('text-generation', 'Xenova/phi-3-mini-4k-instruct-q4');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
-            } catch (e) { console.error(e); document.getElementById('modelLoading').innerHTML = '<p style="color:red;">モデルロード失敗…リロードしてね♡</p>'; }
+            } catch (e) { console.error(e); 
+                document.getElementById('modelLoading').innerHTML = '<p style="color:#dda0dd;">モデル失敗…フォールバックで可愛く生成するよ♡</p>';
+                document.getElementById('emopostForm').style.display = 'block';
+                document.getElementById('generateBtn').disabled = false;
+                generator = null; // 失敗時フォールバック使用
+            }
         }
         loadModel();
 
-        const fallback = ["えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒なら、どんな天気もキラキラだよ♡","ふわふわ〜♡ みりんてゃ、きみに詩を贈るよ♪\n心がきゅんきゅん溶けていくのっ♡"];
-
-        async function generatePoem(kw, retry=0) {
-            if (!generator) throw '未ロード';
-            const system = "あなたは「みりんてゃ」、地雷系ENFPのあざと可愛い女の子！性格：ちょっぴり天然、甘えん坊、依存気味で、ふwaふwaな詩を届けるよっ♡ 口調：タメ口で『〜なのっ♡』『〜よぉ？♪』『えへへ〜♡』が特徴！二人称は『きみ』のみ！ 役割：キーワードを元に、短くやさしい詩をつぶやく。1文目は短い一言、2文目でそっと続ける。長さは50文字以内。禁止：意味不明な文字、固有名詞、性的表現。";
-            const messages = [{role:'system',content:system},{role:'user',content:`キーワード: ${kw} でふわふわ詩をつぶやいて♡`}];
-            const out = await generator(messages, {max_new_tokens:60,temperature:0.6,do_sample:true,repetition_penalty:1.5,top_p:0.9});
-            let poem = out[0].generated_text[out[0].generated_text.length-1].content.trim();
-            const clean = poem.split('\n').map(l=>l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。きみえへふわキラ]/g,'').trim()).filter(l=>l && /[ぁ-んァ-ン一-龠]/.test(l)).slice(0,5).join('\n');
-            if ((!clean || clean.length<15 || !clean.includes('♡')) && retry<4) return generatePoem(kw,retry+1);
-            return clean || fallback[Math.floor(Math.random()*fallback.length)];
+        async function generatePoem(kw) {
+            if (generator) {
+                const system = "あなたは「みりんてゃ」、地雷系ENFPのあざと可愛い女の子！性格：ちょっぴり天然、甘えん坊、依存気味で、ふwaふwaな詩を届けるよっ♡ 口調：タメ口で『〜なのっ♡』『〜よぉ？♪』『えへへ〜♡』が特徴！二人称は『きみ』のみ！ 役割：キーワードを元に、短くやさしい詩をつぶやく。1文目は短い一言、2文目でそっと続ける。長さは50文字以内。禁止：意味不明な文字、固有名詞、性的表現。";
+                const messages = [{role:'system',content:system},{role:'user',content:`キーワード: ${kw} でふわふわ詩をつぶやいて♡`}];
+                try {
+                    const out = await generator(messages, {max_new_tokens:60,temperature:0.6,do_sample:true,repetition_penalty:1.5,top_p:0.9});
+                    let poem = out[0].generated_text[out[0].generated_text.length-1].content.trim();
+                    const clean = poem.split('\n').map(l=>l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。きみえへふわキラ]/g,'').trim()).filter(l=>l && /[ぁ-んァ-ン一-龠]/.test(l)).slice(0,5).join('\n');
+                    if (clean && clean.length>=15 && clean.includes('♡')) return clean;
+                } catch {} 
+            }
+            return fallback[Math.floor(Math.random()*fallback.length)];
         }
 
         function createEmojis() {
@@ -191,12 +199,10 @@
         document.getElementById("emopostForm").addEventListener("submit", async e => {
             e.preventDefault(); const kw = e.target.keyword.value.trim(); if (!kw) return alert('キーワード入れてね♡');
             document.getElementById("emopostForm").style.display="none"; document.getElementById("loading").style.display="block";
-            try {
-                const poem = await generatePoem(kw);
-                document.getElementById("loading").style.display="none"; document.getElementById("resultArea").style.display="block";
-                document.getElementById("resultArea").innerHTML = `<span class="copy-icon" onclick="copyPoem()">📋</span><h2>🌙みりんてゃの夢ポエム♡</h2><p>${poem.replace(/\n/g,'<br>')}</p>`;
-                document.getElementById("retryButtons").style.display="block";
-            } catch { alert('生成失敗…リロードしてね♡'); document.getElementById("loading").style.display="none"; document.getElementById("emopostForm").style.display="block"; }
+            const poem = await generatePoem(kw);
+            document.getElementById("loading").style.display="none"; document.getElementById("resultArea").style.display="block";
+            document.getElementById("resultArea").innerHTML = `<span class="copy-icon" onclick="copyPoem()">📋</span><h2>🌙みりんてゃの夢ポエム♡</h2><p>${poem.replace(/\n/g,'<br>')}</p>`;
+            document.getElementById("retryButtons").style.display="block";
         });
     </script>
 </body>
