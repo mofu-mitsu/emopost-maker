@@ -10,15 +10,13 @@
     <meta name="author" content="mofu-mitsu">
     <meta name="google-site-verification" content="asXFHz9t9b5MSUrHRfKPT3fYOs-qxfbJCM56p1ONUAM" />
     
-    <!-- OGP基本設定 -->
+    <!-- OGP -->
     <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
     <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
     <meta property="og:url" content="https://mofu-mitsu.github.io/emopost.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="今夜のエモポストメーカー">
-    
-    <!-- Twitterカード -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="今夜のエモポストメーカー 🌙✨">
     <meta name="twitter:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
@@ -34,7 +32,7 @@
             padding: 2em;
             color: #555;
             position: relative;
-            overflow: hidden;
+            margin: 0;
         }
 
         @keyframes starryBG {
@@ -43,7 +41,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* 絵文字パーティクルエフェクト（崩れない！） */
+        /* 絵文字パーティクル */
         .particles {
             position: fixed;
             top: 0;
@@ -68,6 +66,27 @@
             100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
         }
 
+        /* おせちバナー */
+        .osechi-banner {
+            margin: 1.5em auto;
+            max-width: 800px;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            padding: 1em;
+            border-radius: 1.5em;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .osechi-banner img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 1em;
+            margin-top: 0.5em;
+        }
+
         h1 {
             font-family: "Kirang Haerang", cursive, "Hiragino Kaku Gothic ProN", sans-serif;
             font-size: 2.5em;
@@ -89,7 +108,7 @@
 
         form, #resultArea {
             max-width: 500px;
-            margin: 0 auto;
+            margin: 2em auto;
             background: #ffffffcc;
             border-radius: 1em;
             padding: 2em;
@@ -219,16 +238,28 @@
             form, #resultArea { padding: 1em; max-width: 100%; width: 100%; }
             .cute-button { font-size: 0.95em; padding: 0.6em 1em; margin: 0.4em; }
             #buttonRow { flex-direction: column; gap: 0.6em; }
+            .osechi-banner { font-size: 1.1em; padding: 0.8em; }
         }
     </style>
 </head>
 <body>
     <div class="particles" id="particles"></div>
+
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
+    
+    <!-- おせちバナー -->
+    <div class="osechi-banner">
+        <p>🎍 早割おせち特集2026 🎍 最大350円OFFクーポン配布中！</p>
+        <a href="https://event.rakuten.co.jp/osechi/" target="_blank">
+            <img src="https://mofu-mitsu.github.io/emopost-ogp.PNG" alt="楽天おせち特集2026">
+        </a>
+    </div>
+
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
         <span style="color: #9370db;">※初回は10秒くらい待ってね♪</span>
     </p>
+
     <form id="emopostForm">
         <label for="keyword">今日の気分やキーワード</label>
         <input type="text" id="keyword" name="keyword" placeholder="例: 幸せ、疲れた、ドキドキ" required>
@@ -244,6 +275,7 @@
 
     <div id="retryButtons">
         <button class="cute-button" onclick="retry()">もう一度生成！</button>
+        <button class="cute-button" onclick="copyPoem()">ポエムをコピー</button>
         <div id="buttonRow">
             <button id="saveImage" class="cute-button" onclick="saveImage()">画像を保存する</button>
             <button class="cute-button" onclick="toggleShareMenu()">SNSに共有する</button>
@@ -251,7 +283,7 @@
         <div id="longpressSaveArea"></div>
         <div id="socialMenu">
             <button class="cute-button" onclick="shareOnTwitter()">Xで直接ポスト！</button>
-            <button class="cute-button" onclick="nativeShare()">共有</button>
+            <button class="cute-button" onclick="nativeShare()">他アプリに共有</button>
         </div>
     </div>
 
@@ -260,17 +292,8 @@
             ポエム生成の後は…おせち気分で癒しグッズ♪（早割・特典付きも！）
         </p>
         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1em;">
-            <!-- 楽天アフィ1 -->
             <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
-                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" style="max-width: 200px; height: auto; border-radius: 0.8em; box-shadow: 0 4px 8px #ccc;" alt="癒しグッズ">
-            </a>
-            <!-- 楽天アフィ2（ぬいぐるみ） -->
-            <a href="https://hb.afl.rakuten.co.jp/ichiba/47f68240.4e8a5cf7.47f68241.23ac8815/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ffos-store%2Fy06425881%2F" target="_blank" rel="nofollow sponsored noopener">
-                <img src="https://hbb.afl.rakuten.co.jp/hgb/47f68240.4e8a5cf7.47f68241.23ac8815/?me_id=1401881&item_id=10003733&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ffos-store%2Fcabinet%2Fi%2F10518415%2Fy06425881.jpg%3F_ex%3D200x200" style="max-width: 200px; height: auto; border-radius: 0.8em; box-shadow: 0 4px 8px #ccc;" alt="ねこ抱きぐるみ">
-            </a>
-            <!-- 楽天アフィ3（ミルクフォーマー） -->
-            <a href="https://hb.afl.rakuten.co.jp/ichiba/47f693c2.0247a617.47f693c3.1dfacb16/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ftoffy%2Fk-mf1%2F" target="_blank" rel="nofollow sponsored noopener">
-                <img src="https://hbb.afl.rakuten.co.jp/hgb/47f693c2.0247a617.47f693c3.1dfacb16/?me_id=1305788&item_id=10008405&pc=https%3A%2F%2Fthumbnail.image.rakuten.co.jp%2F%400_mall%2Ftoffy%2Fcabinet%2Fitem%2Fgazou12%2Fk-mf1_t.jpg%3F_ex%3D200x200" style="max-width: 200px; height: auto; border-radius: 0.8em; box-shadow: 0 4px 8px #ccc;" alt="ミルクフォーマー">
+                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" style="max-width: 150px; height: auto; border-radius: 0.5em; box-shadow: 0 2px 5px #ccc;" alt="癒しグッズ">
             </a>
         </div>
         <div class="back-to-home">
@@ -280,10 +303,9 @@
         </div>
     </footer>
 
-    <!-- html2canvas CDN -->
+    <!-- CDN -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-    <!-- Transformers.js (module) -->
     <script type="module">
         import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 
@@ -294,19 +316,23 @@
 
         async function loadModel() {
             if (!generator) {
-                generator = await pipeline('text-generation', 'Xenova/gpt2');
+                generator = await pipeline('text-generation', 'Xenova/phi-2');
             }
         }
         loadModel();
 
         window.generatePoemWithAI = async function(keyword) {
             if (!generator) throw new Error('モデル未ロード');
-            const prompt = `キーワード: ${keyword}. 夢のような短いポエム:\n`;
-            const output = await generator(prompt, { max_new_tokens: 50, temperature: 0.8, do_sample: true });
+            const prompt = `日本語で、キーワード『${keyword}』を使った、夢のような短いエモいポエムを書いて。5行以内で。`;
+            const output = await generator(prompt, { 
+                max_new_tokens: 60, 
+                temperature: 0.9, 
+                do_sample: true,
+                repetition_penalty: 1.2
+            });
             return output[0].generated_text.replace(prompt, '').trim();
         };
 
-        // 絵文字パーティクル生成
         function createEmojis() {
             const container = document.getElementById('particles');
             const emojis = ['⭐', '✨', '🌙', '💖', '🌟', '🦄', '🌸', '🎀'];
@@ -322,7 +348,6 @@
         }
         createEmojis();
 
-        // 共通関数
         window.retry = function() {
             document.getElementById("emopostForm").reset();
             document.getElementById("emopostForm").style.display = "block";
@@ -332,6 +357,15 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
+        window.copyPoem = function() {
+            const poem = document.getElementById("resultArea").querySelector('p').innerText.trim();
+            navigator.clipboard.writeText(poem).then(() => {
+                alert('ポエムをコピーしたよ！');
+            }).catch(() => {
+                alert('コピー失敗…');
+            });
+        };
+
         window.toggleShareMenu = function() {
             const menu = document.getElementById("socialMenu");
             menu.style.display = (menu.style.display === "none") ? "flex" : "none";
@@ -339,21 +373,21 @@
 
         window.shareOnTwitter = function() {
             const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
-            navigator.clipboard.writeText(result).then(() => {
-                const text = encodeURIComponent(result + "\n#今夜のエモポスト");
-                const url = encodeURIComponent(window.location.href);
-                window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
-                alert('ポエムをクリップボードにコピー！ Xで貼り付けてね♪');
-            });
+            const text = encodeURIComponent(result + "\n#今夜のエモポスト");
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
         };
 
         window.nativeShare = function() {
             const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
             const text = result + "\n#今夜のエモポスト\n" + window.location.href;
             if (navigator.share) {
-                navigator.share({ title: '今夜のエモポストメーカー', text, url: window.location.href });
+                navigator.share({ 
+                    title: '今夜のエモポストメーカー', 
+                    text: text 
+                }).catch(() => alert('共有キャンセル'));
             } else {
-                alert("共有非対応だよ");
+                alert("このブラウザでは共有できないよ");
             }
         };
 
@@ -383,7 +417,6 @@
             }).catch(() => alert('画像保存失敗…'));
         };
 
-        // フォーム
         document.getElementById("emopostForm").addEventListener("submit", async function (e) {
             e.preventDefault();
             const keyword = this.keyword.value.trim();
