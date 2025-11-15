@@ -13,7 +13,7 @@
     <!-- OGP基本設定 -->
     <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.PNG">
+    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
     <meta property="og:url" content="https://mofu-mitsu.github.io/emopost.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="今夜のエモポストメーカー">
@@ -22,7 +22,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="今夜のエモポストメーカー 🌙✨">
     <meta name="twitter:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-ogp.PNG">
+    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
 
     <style>
         body {
@@ -43,28 +43,54 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* 星とハートのパーティクルエフェクト（画像不要） */
-        .particles::before,
-        .particles::after {
-            content: "";
-            position: absolute;
+        /* 可愛い星空パーティクルエフェクト（CSSオンリー） */
+        .stars {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
-                radial-gradient(circle 4px, #ffd700 70%, transparent 80%), /* 星 */
-                radial-gradient(circle 6px, #ff69b4 60%, transparent 70%), /* ハート風 */
-                radial-gradient(circle 3px, #dda0dd 80%, transparent 90%);
-            background-size: 30% 30%;
-            animation: floatParticles 80s linear infinite;
-            opacity: 0.6;
+            pointer-events: none;
             z-index: -1;
         }
 
-        @keyframes floatParticles {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 120% 120%; }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+
+        .star:nth-child(odd) {
+            animation-delay: 1s;
+            background: #ff69b4;
+        }
+
+        .star:nth-child(even) {
+            animation-delay: 2s;
+            background: #dda0dd;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        /* 流星エフェクト */
+        .shooting-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: linear-gradient(to right, #ffd700, transparent);
+            box-shadow: 0 0 10px #ffd700;
+            animation: shoot 5s linear infinite;
+        }
+
+        @keyframes shoot {
+            0% { transform: translateX(-100vw) translateY(50vh); opacity: 1; }
+            100% { transform: translateX(100vw) translateY(20vh); opacity: 0; }
         }
 
         h1 {
@@ -222,7 +248,7 @@
     </style>
 </head>
 <body>
-    <div class="particles"></div>
+    <div class="stars" id="stars"></div>
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
     <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
@@ -249,18 +275,19 @@
         </div>
         <div id="longpressSaveArea"></div>
         <div id="socialMenu">
-            <button class="cute-button" onclick="shareOnTwitter()">X（Twitter）でシェア</button>
+            <button class="cute-button" onclick="shareOnTwitter()">Xで直接ポスト！</button>
             <button class="cute-button" onclick="nativeShare()">共有</button>
         </div>
     </div>
 
     <footer style="text-align: center; margin-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
         <p style="font-weight: bold; color: #6a5acd; margin-bottom: 0.5em;">
-            ポエム生成の後は…夢のようなグッズで癒されてみない？
+            ポエム生成の後は…冬の癒しグッズで新年をエモくスタート？
         </p>
-        <!-- 仮の商品リンク（みつきが後で差し替えやすいように） -->
         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5em;">
-            <a href="https://example.com/item1" target="_blank"><img src="https://example.com/image1.jpg" alt="商品1" style="margin:2px;" /></a>
+            <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
+                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="margin:2px; max-width: 80px; height: auto;" alt="癒しグッズ" title="楽天でチェック♪">
+            </a>
         </div>
         <div class="back-to-home">
             <p style="margin-top: 2em;">
@@ -270,14 +297,40 @@
     </footer>
 
     <!-- CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers@2.17.1/dist/transformers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <script>
         let generator;
 
+        // 星アニメーション生成
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
+            // 流星追加
+            setInterval(() => {
+                const shootingStar = document.createElement('div');
+                shootingStar.className = 'shooting-star';
+                shootingStar.style.top = Math.random() * 50 + 20 + '%';
+                shootingStar.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(shootingStar);
+                setTimeout(() => shootingStar.remove(), 5000);
+            }, 3000);
+        }
+        createStars();
+
         async function loadModel() {
             if (!generator) {
+                const { pipeline, env } = await import('@xenova/transformers');
+                env.allowLocalModels = false;
+                env.useBrowserCache = false;
                 generator = await pipeline('text-generation', 'microsoft/DialoGPT-medium');
             }
         }
@@ -303,7 +356,8 @@
                 `;
                 document.getElementById("retryButtons").style.display = "block";
             } catch (error) {
-                alert('生成失敗…もう一度！');
+                console.error(error);
+                alert('生成失敗…もう一度！（モデルロード中かも？）');
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("emopostForm").style.display = "block";
             }
@@ -332,15 +386,20 @@
         }
 
         function shareOnTwitter() {
-            const result = document.getElementById("resultArea").innerText.trim();
-            const text = encodeURIComponent(result + "\n#今夜のエモポスト で生成してみて！");
-            const url = encodeURIComponent(window.location.href);
-            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+            const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
+            navigator.clipboard.writeText(result).then(() => {
+                const text = encodeURIComponent(result + "\n#今夜のエモポスト");
+                const url = encodeURIComponent(window.location.href);
+                window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+                alert('ポエムをクリップボードにコピーしたよ！ Xで貼り付けてポストしてね♪');
+            }).catch(() => {
+                alert('コピー失敗…手動でポエムをコピーしてね！');
+            });
         }
 
         function nativeShare() {
-            const result = document.getElementById("resultArea").innerText.trim();
-            const text = result + "\n生成してみて！\n" + window.location.href;
+            const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
+            const text = result + "\n#今夜のエモポスト 生成してみて！\n" + window.location.href;
             if (navigator.share) {
                 navigator.share({ title: '今夜のエモポストメーカー', text, url: window.location.href });
             } else {
