@@ -15,7 +15,6 @@
     <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
     <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.png"> <!-- GitHub用 -->
-    <!-- <meta property="og:image" content="emopost-ogp.png"> --> <!-- ローカル用 -->
     <meta property="og:url" content="https://mofu-mitsu.github.io/emopost.html"> <!-- GitHub用 -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="今夜のエモポストメーカー">
@@ -35,6 +34,9 @@
             color: #555;
             position: relative;
             margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         @keyframes starryBG {
@@ -57,7 +59,7 @@
         .emoji {
             position: absolute;
             animation: float 10s linear infinite;
-            opacity: 0iris 0.7;
+            opacity: 0.7;
         }
 
         @keyframes float {
@@ -76,6 +78,7 @@
             border-radius: 1.5em;
             display: inline-block;
             box-shadow: 0 4px 10px #e6e6fa;
+            margin: 0 auto 1em;
         }
 
         .gradient-text {
@@ -88,11 +91,13 @@
 
         form, #resultArea {
             max-width: 500px;
+            width: 100%;
             margin: 2em auto;
             background: #ffffffcc;
             border-radius: 1em;
             padding: 2em;
             box-shadow: 0 0 10px #b0c4de;
+            text-align: left;
         }
 
         label {
@@ -134,7 +139,8 @@
             border-radius: 2em;
             cursor: pointer;
             transition: 0.3s;
-            margin: 0.5em;
+            margin: 0.5em auto;
+            display: block;
             box-shadow: 0 4px 6px #ccc;
         }
 
@@ -159,12 +165,14 @@
             line-height: 1.8;
             display: none;
             position: relative;
+            text-align: center;
         }
 
         #resultArea h2 {
             font-size: 1.5em;
             color: #6a5acd;
             margin-bottom: 1em;
+            text-align: center;
         }
 
         .copy-icon {
@@ -187,8 +195,9 @@
 
         #loading, #modelLoading {
             display: block;
-            margin-top: 2em;
+            margin: 2em auto;
             text-align: center;
+            max-width: 500px;
         }
 
         .spinner {
@@ -210,6 +219,8 @@
             display: none;
             text-align: center;
             margin-top: 1.5em;
+            max-width: 500px;
+            margin: 1.5em auto;
         }
 
         #buttonRow {
@@ -227,10 +238,23 @@
 
         @media screen and (max-width: 600px) {
             h1 { font-size: 1.8em; padding: 0.4em 0.8em; }
-            form, #resultArea { padding: 1em; max-width: 100%; width: 100%; }
-            .cute-button { font-size: 0.95em; padding: 0.6em 1em; margin: 0.4em; }
+            form, #resultArea, #loading, #modelLoading, #retryButtons { padding: 1em; max-width: 100%; width: 90%; }
+            .cute-button { font-size: 0.95em; padding: 0.6em 1em; margin: 0.4em auto; }
             #buttonRow { flex-direction: column; gap: 0.6em; }
             .copy-icon { font-size: 1em; top: 0.8em; right: 0.8em; }
+        }
+
+        footer {
+            width: 100%;
+            text-align: center;
+            margin-top: 3em;
+            background-color: #f0f8ff;
+            padding: 1em;
+            border-top: 2px dashed #b0c4de;
+        }
+
+        .back-to-home {
+            margin-top: 2em;
         }
     </style>
 </head>
@@ -239,14 +263,14 @@
 
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
 
-    <p style="text-align: center; font-weight: normal; color: #708090; font-size: 1em; margin-bottom: 1.2em; line-height: 1.6;">
+    <p style="max-width:500px; margin:0 auto 1.2em; color:#708090; font-size:1em; line-height:1.6;">
         今日の気分やキーワードを入れてね。AIが夢のようなポエムを生成するよ〜✨<br>
-        <span style="color: #9370db;">※初回は10秒くらい待ってね♪</span>
+        <span style="color: #9370db;">※初回は20秒くらい待ってね♪（Llamaモデルロード中）</span>
     </p>
 
     <div id="modelLoading">
         <div class="spinner"></div>
-        <p>AIモデルをロード中…（初回のみ）</p>
+        <p>AIモデルをロード中…（初回のみ、重め）</p>
     </div>
 
     <form id="emopostForm" style="display: none;">
@@ -273,21 +297,17 @@
         <div id="longpressSaveArea"></div>
     </div>
 
-    <footer style="text-align: center; margin-top: 3em; background-color: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de;">
-        <p style="font-weight: bold; color: #6a5acd;  margin-bottom: 0.5em;">
+    <footer>
+        <p style="font-weight: bold; color: #6a5acd; margin-bottom: 0.5em;">
             ポエム生成の後は…おせち気分で癒しグッズ♪（早割・特典付きも！）
         </p>
         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1em;">
             <a href="https://event.rakuten.co.jp/toshikoshi/" target="_blank" rel="nofollow sponsored noopener" style="text-decoration: none; color: #6a5acd; font-weight: bold;">
                 🎍 楽天おせち特集2026 🎍<br>最大350円OFFクーポン！
             </a>
-            <!-- 楽天画像404なら削除 -->
-            <!-- <a href="..." target="_blank" rel="nofollow sponsored noopener">
-                <img src="..." alt="癒しグッズ">
-            </a> -->
         </div>
-        <!-- TOPへ戻るをバナーより後ろに -->
-        <div class="back-to-home" style="margin-top: 2em;">
+        <!-- TOPへ戻るを1番最後に -->
+        <div class="back-to-home">
             <p>
                 <a href="https://mofu-mitsu.github.io/" style="text-decoration: none; font-weight: bold; color: #6a5acd;">TOPへ戻る</a>
             </p>
@@ -306,7 +326,7 @@
 
         async function loadModel() {
             try {
-                generator = await pipeline('text-generation', 'Xenova/gpt2');
+                generator = await pipeline('text-generation', 'Xenova/llama-3-8b-instruct-q4');
                 document.getElementById('modelLoading').style.display = 'none';
                 document.getElementById('emopostForm').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
@@ -319,22 +339,25 @@
 
         async function generatePoemWithAI(keyword, retryCount = 0) {
             if (!generator) throw new Error('モデル未ロード');
-            const prompt = `日本語のみで、夢のような可愛いエモい短いポエムを書け。キーワード「${keyword}」を使い、5行以内。ひらがな・カタカナ・漢字のみ。例: 月の光が優しく包む / 君の笑顔が星になる / 心ふわふわ溶けていく / 夢の続きよ / 永遠に✨`;
-            const output = await generator(prompt, { 
-                max_new_tokens: 80, 
-                temperature: 0.85, 
+            const messages = [
+                { role: 'system', content: 'あなたは日本語で夢のような可愛いエモい短いポエムを書く詩人です。キーワードを使って5行以内、ひらがな・カタカナ・漢字・絵文字のみで書いてください。意味不明な文字は絶対使わない。' },
+                { role: 'user', content: `キーワード: ${keyword}` }
+            ];
+            const output = await generator(messages, { 
+                max_new_tokens: 100, 
+                temperature: 0.8, 
                 do_sample: true,
-                repetition_penalty: 1.4,
-                top_p: 0.9
+                repetition_penalty: 1.3,
+                top_p: 0.95
             });
-            let poem = output[0].generated_text.replace(prompt, '').trim();
-            // 厳格日本語フィルタ: ひらがな/カタカナ/漢字/記号のみ
-            const cleanLines = poem.split('\n').map(line => line.replace(/[^ぁ-ゔァ-ヴー一-龠々〆〤\w\s\!\?\.\,\'\"]/g, '').trim()).filter(line => line.length > 0 && /[\u3040-\u30FF\u4E00-\u9FFF]/.test(line));
+            let poem = output[0].generated_text.slice(-1)[0].content.trim();
+            // 厳格フィルタ
+            const cleanLines = poem.split('\n').map(line => line.replace(/[^ぁ-ゔァ-ヴー一-龠々〆〤\w\s\!\?\.\,\'\"\u2600-\u27BF]/g, '').trim()).filter(line => line && /[\u3040-\u30FF\u4E00-\u9FFF]/.test(line));
             poem = cleanLines.slice(0, 5).join('\n').trim();
-            if ((!poem || poem.length < 10) && retryCount < 3) {
+            if ((!poem || poem.length < 15) && retryCount < 3) {
                 return generatePoemWithAI(keyword, retryCount + 1);
             }
-            return poem || `ふわふわの夜空に\n${keyword}の魔法が\n心きゅんきゅん\n夢のような温もり\n永遠に続くよ✨`;
+            return poem || `ふわふわの夜に\n${keyword}の光が\n心きゅんきゅん\n夢の魔法よ\n永遠に続く✨`;
         };
 
         function createEmojis() {
@@ -364,78 +387,37 @@
 
         window.copyPoem = function() {
             const poem = document.getElementById("resultArea").querySelector('p').innerText.trim();
-            navigator.clipboard.writeText(poem).then(() => {
-                alert('ポエムをコピーしたよ！');
-            }).catch(() => {
-                alert('コピー失敗…');
-            });
+            navigator.clipboard.writeText(poem).then(() => alert('ポエムをコピーしたよ！'));
         };
 
         window.sharePoem = function() {
             const result = document.getElementById("resultArea").querySelector('p').innerText.trim();
-            const text = result + "\n#今夜のエモポスト\n" + window.location.href;
-            if (navigator.share) {
-                navigator.share({ 
-                    title: '今夜のエモポストメーカー', 
-                    text: text 
-                }).catch(() => alert('共有キャンセル'));
-            } else {
-                const encodedText = encodeURIComponent(result + "\n#今夜のエモポスト");
-                const url = encodeURIComponent(window.location.href);
-                window.open(`https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`, "_blank");
-            }
+            const text = result + "\n#今夜のエモポスト\n" + location.href;
+            if (navigator.share) navigator.share({title: 'エモポスト', text});
+            else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
         };
 
         window.saveImage = function() {
-            const target = document.getElementById('resultArea');
-            html2canvas(target, { scale: 2, useCORS: true }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'emo_poem.png';
-                link.href = canvas.toDataURL('image/png');
-                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                    link.click();
-                } else {
-                    const imgArea = document.getElementById('longpressSaveArea');
-                    imgArea.innerHTML = '';
-                    const img = new Image();
-                    img.src = canvas.toDataURL('image/png');
-                    img.style.maxWidth = '100%';
-                    img.style.border = '2px solid #dda0dd';
-                    img.style.borderRadius = '1em';
-                    imgArea.appendChild(img);
-                    const note = document.createElement('p');
-                    note.textContent = '※長押しして保存してね♪';
-                    note.style.color = '#6a5acd';
-                    note.style.fontWeight = 'bold';
-                    imgArea.appendChild(note);
+            html2canvas(document.getElementById('resultArea'), {scale:2, useCORS:true}).then(canvas => {
+                const a = document.createElement('a'); a.download = 'emo_poem.png'; a.href = canvas.toDataURL();
+                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) a.click();
+                else {
+                    const area = document.getElementById('longpressSaveArea'); area.innerHTML = '';
+                    const img = new Image(); img.src = canvas.toDataURL(); img.style.maxWidth='100%'; img.style.border='2px solid #dda0dd'; img.style.borderRadius='1em'; area.appendChild(img);
+                    const note = document.createElement('p'); note.textContent='長押し保存♪'; note.style.color='#6a5acd'; area.appendChild(note);
                 }
-            }).catch(() => alert('画像保存失敗…'));
+            });
         };
 
-        document.getElementById("emopostForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
-            const keyword = this.keyword.value.trim();
-            if (!keyword) return alert('キーワード入れてね〜！');
-
-            document.getElementById("emopostForm").style.display = "none";
-            document.getElementById("loading").style.display = "block";
-
+        document.getElementById("emopostForm").addEventListener("submit", async e => {
+            e.preventDefault(); const kw = e.target.keyword.value.trim(); if (!kw) return alert('キーワード入れて！');
+            document.getElementById("emopostForm").style.display="none"; document.getElementById("loading").style.display="block";
             try {
-                const poem = await generatePoemWithAI(keyword);
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("resultArea").style.display = "block";
-                document.getElementById("resultArea").innerHTML = `
-                    <span class="copy-icon" onclick="copyPoem()" title="ポエムをコピー">📋</span>
-                    <h2>🌙あなたの夢ポエム🌙</h2>
-                    <p>${poem.replace(/\n/g, '<br>')}</p>
-                `;
-                document.getElementById("retryButtons").style.display = "block";
-            } catch (error) {
-                console.error(error);
-                alert('生成失敗…リトライかリロードしてね！');
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("emopostForm").style.display = "block";
-            }
+                const poem = await generatePoemWithAI(kw);
+                document.getElementById("loading").style.display="none"; document.getElementById("resultArea").style.display="block";
+                document.getElementById("resultArea").innerHTML = `<span class="copy-icon" onclick="copyPoem()">📋</span><h2>🌙あなたの夢ポエム🌙</h2><p>${poem.replace(/\n/g,'<br>')}</p>`;
+                document.getElementById("retryButtons").style.display="block";
+            } catch { alert('失敗…リロード！'); document.getElementById("loading").style.display="none"; document.getElementById("emopostForm").style.display="block"; }
         });
     </script>
 </body>
