@@ -6,10 +6,9 @@
     <title>今夜のエモポストメーカー 🌙✨</title>
     <link rel="icon" type="image/x-icon" href="https://mofu-mitsu.github.io/favicon.ico">
     <meta name="description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <!-- 以下、metaタグ省略（変更なし） -->
 
     <style>
-        /* スタイルは変更なし */
+        /* スタイルは前回と同じ、全部コピーしてね！ */
         * { box-sizing: border-box; }
         body {
             font-family: "Hiragino Kaku Gothic ProN", sans-serif;
@@ -61,12 +60,12 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回10秒待ってね♪（モデルロード中）</span>
+        <span style="color:#9370db;">※初回15-20秒待ってね♪（日本語モデルロード中）</span>
     </p>
 
     <div id="modelLoading" class="container">
         <div class="spinner"></div>
-        <p>みりんてゃがモデル呼び出してる…えへへ〜♡</p>
+        <p>みりんてゃが日本語モデル呼び出してる…えへへ〜♡</p>
     </div>
 
     <form id="emopostForm" class="container" style="display:none;">
@@ -111,7 +110,6 @@
         env.allowRemoteModels = true; env.allowLocalModels = false;
         let generator = null;
 
-        // フォールバック（AI失敗時）
         const fallback = [
             "えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡",
             "ふわふわ〜♡ 心きゅんきゅん溶けちゃうよ\n夢みたいな甘い世界♡ 永遠に続くよぉ？",
@@ -119,61 +117,71 @@
             "みりんてゃの瞳きゅんきゅん♡\nきみと夢みたいな世界\n永遠にふわふわなのっ♪"
         ];
 
-        // モデル読み込み
         async function loadModel() {
             try { 
-                generator = await pipeline('text-generation', 'Xenova/gpt2');
-                document.getElementById('modelLoading').style.display = 'none';
-                document.getElementById('emopostForm').style.display = 'block';
-                document.getElementById('generateBtn').disabled = false;
+                // 日本語モデルに変更！（1.3B版で軽め）
+                generator = await pipeline('text-generation', 'Xenova/gpt-neox-japanese-1.3b');  
+                hideModelLoading();
             } catch (e) { 
-                console.error(e); 
-                document.getElementById('modelLoading').innerHTML = '<p style="color:#dda0dd;">モデル失敗…でも可愛く生成するよ♡</p>';
-                document.getElementById('emopostForm').style.display = 'block';
-                document.getElementById('generateBtn').disabled = false;
-                generator = null;
+                console.error('モデルロード失敗:', e); 
+                // fallback用に小さい英語モデルでも代用（でも日本語無理だから注意）
+                try {
+                    generator = await pipeline('text-generation', 'Xenova/distilgpt2');
+                } catch {}
+                hideModelLoading();  
             }
+        }
+
+        function hideModelLoading() {
+            document.getElementById('modelLoading').style.display = 'none';
+            document.getElementById('emopostForm').style.display = 'block';
+            document.getElementById('generateBtn').disabled = false;
         }
         loadModel();
 
-        // ポエム検証（超厳選）
         function isValidPoem(poem) {
-            if (!poem || poem.length < 20) return false;
-            if (!/♡|えへへ|ふわふわ|きゅん|キラ/.test(poem)) return false;
-            const invalid = poem.match(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラよぉなのっ]/g);
-            return !(invalid && invalid.length > 0);
+            if (!poem || poem.length < 10) return false;
+            // 超緩く: ♡か日本語っぽい文字があればOK
+            if (!/♡|えへ|ふわ|きゅん|キラ|なのっ/.test(poem)) return false;
+            const invalid = poem.match(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\n ]/g);  // 英語/数字厳禁、スペース許す
+            return !(invalid && invalid.length > 10);  // 少し許容
         }
 
-        // ポエム生成（再帰リトライ付き）
         async function generatePoem(kw, retry = 0) {
-            if (generator && retry < 6) {
-                // プロンプトを短く・明確に！
-                const prompt = `${kw} えへへ〜♡ ふわふわ`;
-                try {
-                    const out = await generator(prompt, {
-                        max_new_tokens: 60,
-                        temperature: 0.9,
-                        do_sample: true,
-                        repetition_penalty: 1.5,
-                        top_p: 0.92
-                    });
-                    let poem = out[0].generated_text.replace(prompt, '').trim();
-                    // 後処理で厳選
-                    poem = poem.split('\n')
-                        .map(l => l.replace(/[^ぁ-ゔァ-ヴー一-龠々♡♪〜！？、。\nきみえへふわキラよぉなのっ]/g, '').trim())
-                        .filter(l => l.length > 3)
-                        .slice(0, 5)
-                        .join('\n');
-                    if (isValidPoem(poem)) return poem;
-                } catch (err) {
-                    console.warn('生成失敗:', err);
-                }
-                return generatePoem(kw, retry + 1);
+            if (retry >= 5) {  
+                console.warn('リトライ上限: fallback');
+                return fallback[Math.floor(Math.random() * fallback.length)];
             }
-            return fallback[Math.floor(Math.random() * fallback.length)];
+            if (!generator) return fallback[Math.floor(Math.random() * fallback.length)];
+
+            // 日本語プロンプトで誘導強化
+            const prompt = `「${kw}」をテーマに、えへへ〜♡ ふわふわなのっ♪ きみと夢みたいな可愛いポエムを5行以内で書いて。みりんてゃ風に♡`;
+            try {
+                const out = await generator(prompt, {
+                    max_new_tokens: 80,  // 少し長め
+                    temperature: 0.8,    
+                    do_sample: true,
+                    repetition_penalty: 1.2,
+                    top_p: 0.95
+                });
+                let poem = out[0].generated_text.replace(prompt, '').trim();
+                poem = poem.split('\n')
+                    .map(l => l.replace(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\n ]/g, '').trim())
+                    .filter(l => l.length > 2)
+                    .slice(0, 5)
+                    .join('\n');
+                if (poem && isValidPoem(poem)) {
+                    console.log('成功ポエム:', poem);
+                    return poem;
+                } else {
+                    console.warn('無効ポエム、再試行');
+                }
+            } catch (err) {
+                console.error('生成エラー:', err);
+            }
+            return generatePoem(kw, retry + 1);
         }
 
-        // パーティクル
         function createEmojis() {
             const c = document.getElementById('particles');
             const e = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
@@ -189,7 +197,6 @@
         }
         createEmojis();
 
-        // ボタン系
         window.retry = () => { 
             document.getElementById("emopostForm").reset(); 
             document.getElementById("emopostForm").style.display = "block"; 
@@ -233,23 +240,24 @@
             });
         };
 
-        // フォーム送信 → ここが超重要！
         document.getElementById("emopostForm").addEventListener("submit", async e => {
             e.preventDefault(); 
             const kw = e.target.keyword.value.trim(); 
             if (!kw) return alert('キーワード入れてね♡');
 
-            // 1. フォーム隠す
             document.getElementById("emopostForm").style.display = "none"; 
-            // 2. ローディング表示（生成中も出る！）
             document.getElementById("loading").style.display = "block";
 
-            // 3. ポエム生成（awaitで待つ）
-            const poem = await generatePoem(kw);
+            let poem = '';
+            try {
+                poem = await generatePoem(kw);
+            } catch (err) {
+                console.error('全体エラー:', err);
+                poem = fallback[Math.floor(Math.random() * fallback.length)];
+            } finally {
+                document.getElementById("loading").style.display = "none";
+            }
 
-            // 4. ローディング非表示 ← ここまで待つ！
-            document.getElementById("loading").style.display = "none"; 
-            // 5. 結果表示
             document.getElementById("resultArea").style.display = "block";
             document.getElementById("resultArea").innerHTML = `
                 <span class="copy-icon" onclick="copyPoem()">📋</span>
