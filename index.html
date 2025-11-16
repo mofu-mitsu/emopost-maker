@@ -8,7 +8,7 @@
     <meta name="description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
 
     <style>
-        /* スタイルは前回と同じ、全部コピーしてね！ */
+        /* スタイル全部同じ、省略 */
         * { box-sizing: border-box; }
         body {
             font-family: "Hiragino Kaku Gothic ProN", sans-serif;
@@ -60,12 +60,12 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回15-20秒待ってね♪（日本語モデルロード中）</span>
+        <span style="color:#9370db;">※初回10-15秒待ってね♪（多言語モデルロード中）</span>
     </p>
 
     <div id="modelLoading" class="container">
         <div class="spinner"></div>
-        <p>みりんてゃが日本語モデル呼び出してる…えへへ〜♡</p>
+        <p>みりんてゃが多言語モデル呼び出してる…えへへ〜♡</p>
     </div>
 
     <form id="emopostForm" class="container" style="display:none;">
@@ -119,15 +119,18 @@
 
         async function loadModel() {
             try { 
-                // 日本語モデルに変更！（1.3B版で軽め）
-                generator = await pipeline('text-generation', 'Xenova/gpt-neox-japanese-1.3b');  
+                // 多言語mGPTに変更！ 日本語対応少しマシ
+                generator = await pipeline('text-generation', 'Xenova/mGPT');  
+                console.log('モデルロード成功: mGPT');
                 hideModelLoading();
             } catch (e) { 
-                console.error('モデルロード失敗:', e); 
-                // fallback用に小さい英語モデルでも代用（でも日本語無理だから注意）
+                console.error('mGPTロード失敗、distilgpt2 fallback:', e); 
                 try {
                     generator = await pipeline('text-generation', 'Xenova/distilgpt2');
-                } catch {}
+                    console.log('代替モデルロード: distilgpt2');
+                } catch (e2) {
+                    console.error('全モデル失敗:', e2);
+                }
                 hideModelLoading();  
             }
         }
@@ -139,45 +142,46 @@
         }
         loadModel();
 
+        // isValidPoem激緩: ♡必須だけ、invalid10個までOK
         function isValidPoem(poem) {
             if (!poem || poem.length < 10) return false;
-            // 超緩く: ♡か日本語っぽい文字があればOK
-            if (!/♡|えへ|ふわ|きゅん|キラ|なのっ/.test(poem)) return false;
-            const invalid = poem.match(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\n ]/g);  // 英語/数字厳禁、スペース許す
-            return !(invalid && invalid.length > 10);  // 少し許容
+            if (!poem.includes('♡')) return false;
+            const invalid = poem.match(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\n ]/g);
+            return !(invalid && invalid.length > 10);
         }
 
         async function generatePoem(kw, retry = 0) {
-            if (retry >= 5) {  
+            if (retry >= 10) {  // リトライ増
                 console.warn('リトライ上限: fallback');
                 return fallback[Math.floor(Math.random() * fallback.length)];
             }
             if (!generator) return fallback[Math.floor(Math.random() * fallback.length)];
 
-            // 日本語プロンプトで誘導強化
-            const prompt = `「${kw}」をテーマに、えへへ〜♡ ふわふわなのっ♪ きみと夢みたいな可愛いポエムを5行以内で書いて。みりんてゃ風に♡`;
+            // プロンプト: 日本語強制 + 短く
+            const prompt = `日本語で「${kw}」の可愛いポエム。えへへ〜♡ ふわふわなのっ♪ きみと夢のように。`;
+            console.log(`生成開始 (retry ${retry}): ${prompt}`);
             try {
                 const out = await generator(prompt, {
-                    max_new_tokens: 80,  // 少し長め
-                    temperature: 0.8,    
+                    max_new_tokens: 70,
+                    temperature: 0.7,  // 安定重視
                     do_sample: true,
-                    repetition_penalty: 1.2,
-                    top_p: 0.95
+                    repetition_penalty: 1.1,
+                    top_p: 0.9
                 });
                 let poem = out[0].generated_text.replace(prompt, '').trim();
                 poem = poem.split('\n')
                     .map(l => l.replace(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\n ]/g, '').trim())
-                    .filter(l => l.length > 2)
+                    .filter(l => l.length > 1)
                     .slice(0, 5)
                     .join('\n');
                 if (poem && isValidPoem(poem)) {
                     console.log('成功ポエム:', poem);
                     return poem;
                 } else {
-                    console.warn('無効ポエム、再試行');
+                    console.warn('無効ポエム (長さ:', poem.length, '):', poem.substring(0, 50), '... 再試行');
                 }
             } catch (err) {
-                console.error('生成エラー:', err);
+                console.error('生成エラー (retry', retry, '):', err);
             }
             return generatePoem(kw, retry + 1);
         }
@@ -248,9 +252,14 @@
             document.getElementById("emopostForm").style.display = "none"; 
             document.getElementById("loading").style.display = "block";
 
+            // ローディング最低1秒表示（見えやすく）
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             let poem = '';
             try {
+                console.log('全体生成開始');
                 poem = await generatePoem(kw);
+                console.log('全体生成終了');
             } catch (err) {
                 console.error('全体エラー:', err);
                 poem = fallback[Math.floor(Math.random() * fallback.length)];
