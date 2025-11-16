@@ -6,20 +6,20 @@
     <title>今夜のエモポストメーカー 🌙✨</title>
     <link rel="icon" type="image/x-icon" href="https://mofu-mitsu.github.io/favicon.ico">
     <meta name="description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <!-- OGP -->
+    
+    <!-- OGP修正版 -->
     <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:image" content="https://https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
+    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.png"> <!-- ここにOGP画像アップしてね -->
     <meta property="og:url" content="https://mofu-mitsu.github.io/emopost-maker/emopost.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="今夜のエモポストメーカー">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="今夜のエモポストメーカー 🌙✨">
     <meta name="twitter:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
+    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
 
     <style>
-        /* スタイル全部同じ、省略 */
         * { box-sizing: border-box; }
         body {
             font-family: "Hiragino Kaku Gothic ProN", sans-serif;
@@ -90,7 +90,9 @@
         <p>みりんてゃがポエム紡いでる…えへへ〜♡</p>
     </div>
 
-    <div id="resultArea" class="container"><span class="copy-icon" onclick="copyPoem()">📋</span></div>
+    <div id="resultArea" class="container">
+        <span class="copy-icon" onclick="copyPoem()">📋</span>
+    </div>
 
     <div id="retryButtons" class="container" style="display:none;">
         <button class="cute-button" onclick="retry()">もう一度！♡</button>
@@ -116,10 +118,10 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script type="module">
-        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
-        env.allowRemoteModels = true; env.allowLocalModels = false;
-        let generator = null;
+    <!-- RWKV.js CDN (最新安定版) -->
+    <script src="https://cdn.jsdelivr.net/npm/rwkv.js@0.2.1/dist/rwkv.min.js"></script>
+    <script>
+        let rwkv = null;
 
         const fallback = [
             "えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡",
@@ -129,20 +131,16 @@
         ];
 
         async function loadModel() {
-            try { 
-                // 日本語特化モデル！ 1.3Bで軽め
-                generator = await pipeline('text-generation', 'Xenova/gpt-neox-japanese-1.3b');  
-                console.log('モデルロード成功: gpt-neox-japanese-1.3b');
+            try {
+                // RWKV-4-Raven-1.5B-Japanese (軽めで日本語強い、Hugging Face公開済み)
+                const modelUrl = 'https://huggingface.co/BlinkDL/rwkv-4-raven/resolve/main/RWKV-4-Raven-1B5-v12-Japanese-20230810-ctx4096.pth';
+                rwkv = new RWKV(modelUrl, { threads: navigator.hardwareConcurrency || 4 });
+                await rwkv.load();
+                console.log('RWKVモデルロード成功: 1.5B日本語版');
                 hideModelLoading();
-            } catch (e) { 
-                console.error('日本語モデル失敗、distilgpt2 fallback:', e); 
-                try {
-                    generator = await pipeline('text-generation', 'Xenova/distilgpt2');
-                    console.log('代替モデル: distilgpt2 (でも日本語弱いよ...)');
-                } catch (e2) {
-                    console.error('全失敗:', e2);
-                }
-                hideModelLoading();  
+            } catch (e) {
+                console.error('RWKVロード失敗 (fallbackオンリー):', e);
+                hideModelLoading();
             }
         }
 
@@ -153,46 +151,36 @@
         }
         loadModel();
 
-        // isValidPoem激緩: ♡必須だけ、invalid10個までOK
         function isValidPoem(poem) {
-            if (!poem || poem.length < 10) return false;
-            if (!poem.includes('♡')) return false;
-            const invalid = poem.match(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\n ]/g);
-            return !(invalid && invalid.length > 10);
+            return poem && poem.length > 20 && poem.includes('♡');
         }
 
         async function generatePoem(kw, retry = 0) {
-            if (retry >= 10) {  // リトライ増
+            if (retry >= 5) {
                 console.warn('リトライ上限: fallback');
                 return fallback[Math.floor(Math.random() * fallback.length)];
             }
-            if (!generator) return fallback[Math.floor(Math.random() * fallback.length)];
+            if (!rwkv) return fallback[Math.floor(Math.random() * fallback.length)];
 
-            // プロンプト: 日本語強制 + 短く
-            const prompt = `日本語で「${kw}」の可愛いポエム。えへへ〜♡ ふわふわなのっ♪ きみと夢のように。`;
-            console.log(`生成開始 (retry ${retry}): ${prompt}`);
+            const prompt = `${kw} えへへ〜♡ ふわふわなのっ♪ きみと夢みたいな可愛いポエムを5行以内で書いて♡\n`;
+            console.log(`生成開始 (retry ${retry}): ${prompt.substring(0, 60)}...`);
             try {
-                const out = await generator(prompt, {
-                    max_new_tokens: 70,
-                    temperature: 0.7,  // 安定重視
-                    do_sample: true,
-                    repetition_penalty: 1.1,
-                    top_p: 0.9
+                const out = await rwkv.generate(prompt, {
+                    max_tokens: 100,
+                    temperature: 0.85,
+                    top_p: 0.92,
+                    stop: ['\n\n']
                 });
-                let poem = out[0].generated_text.replace(prompt, '').trim();
-                poem = poem.split('\n')
-                    .map(l => l.replace(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\n ]/g, '').trim())
-                    .filter(l => l.length > 1)
-                    .slice(0, 5)
-                    .join('\n');
-                if (poem && isValidPoem(poem)) {
+                let poem = out.trim();
+                poem = poem.replace(/[^ぁ-んァ-ン一-龯々♡♪〜！？、。\nきみえへふわキラよぉなのっ ]/g, '');
+                if (isValidPoem(poem)) {
                     console.log('成功ポエム:', poem);
                     return poem;
                 } else {
-                    console.warn('無効ポエム (長さ:', poem.length, '):', poem.substring(0, 50), '... 再試行');
+                    console.warn('無効ポエム、再試行');
                 }
             } catch (err) {
-                console.error('生成エラー (retry', retry, '):', err);
+                console.error('生成エラー:', err);
             }
             return generatePoem(kw, retry + 1);
         }
@@ -201,70 +189,69 @@
             const c = document.getElementById('particles');
             const e = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
             setInterval(() => {
-                const d = document.createElement('div'); 
-                d.className = 'emoji'; 
+                const d = document.createElement('div');
+                d.className = 'emoji';
                 d.textContent = e[Math.floor(Math.random() * e.length)];
-                d.style.left = Math.random() * 100 + '%'; 
+                d.style.left = Math.random() * 100 + '%';
                 d.style.animationDuration = (Math.random() * 8 + 8) + 's';
-                c.appendChild(d); 
+                c.appendChild(d);
                 setTimeout(() => d.remove(), 16000);
             }, 800);
         }
         createEmojis();
 
-        window.retry = () => { 
-            document.getElementById("emopostForm").reset(); 
-            document.getElementById("emopostForm").style.display = "block"; 
-            document.getElementById("resultArea").style.display = "none"; 
-            document.getElementById("retryButtons").style.display = "none"; 
-            document.getElementById("longpressSaveArea").innerHTML = ''; 
-            document.getElementById("loading").style.display = "none"; 
+        window.retry = () => {
+            document.getElementById("emopostForm").reset();
+            document.getElementById("emopostForm").style.display = "block";
+            document.getElementById("resultArea").style.display = "none";
+            document.getElementById("retryButtons").style.display = "none";
+            document.getElementById("longpressSaveArea").innerHTML = '';
+            document.getElementById("loading").style.display = "none";
         };
 
-        window.copyPoem = () => { 
+        window.copyPoem = () => {
             const text = document.getElementById("resultArea").querySelector('p').innerText.trim();
-            navigator.clipboard.writeText(text).then(() => alert('コピーしたよ♡')); 
+            navigator.clipboard.writeText(text).then(() => alert('コピーしたよ♡'));
         };
 
         window.sharePoem = () => {
             const txt = document.getElementById("resultArea").querySelector('p').innerText.trim() + "\n#今夜のエモポスト\n" + location.href;
-            if (navigator.share) navigator.share({title: 'みりんてゃポエム♡', text: txt}); 
+            if (navigator.share) navigator.share({title: 'みりんてゃポエム♡', text: txt});
             else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`, '_blank');
         };
 
         window.saveImage = () => {
             html2canvas(document.getElementById('resultArea'), {scale: 2}).then(c => {
-                const a = document.createElement('a'); 
-                a.download = 'mirintya_poem.png'; 
+                const a = document.createElement('a');
+                a.download = 'mirintya_poem.png';
                 a.href = c.toDataURL();
-                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) a.click(); 
+                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) a.click();
                 else {
-                    const area = document.getElementById('longpressSaveArea'); 
-                    area.innerHTML = ''; 
-                    const img = new Image(); 
-                    img.src = c.toDataURL(); 
-                    img.style.maxWidth = '100%'; 
-                    img.style.border = '2px solid #dda0dd'; 
-                    img.style.borderRadius = '1em'; 
+                    const area = document.getElementById('longpressSaveArea');
+                    area.innerHTML = '';
+                    const img = new Image();
+                    img.src = c.toDataURL();
+                    img.style.maxWidth = '100%';
+                    img.style.border = '2px solid #dda0dd';
+                    img.style.borderRadius = '1em';
                     area.appendChild(img);
-                    const n = document.createElement('p'); 
-                    n.textContent = '長押し保存してね♡'; 
-                    n.style.color = '#6a5acd'; 
+                    const n = document.createElement('p');
+                    n.textContent = '長押し保存してね♡';
+                    n.style.color = '#6a5acd';
                     area.appendChild(n);
                 }
             });
         };
 
         document.getElementById("emopostForm").addEventListener("submit", async e => {
-            e.preventDefault(); 
-            const kw = e.target.keyword.value.trim(); 
+            e.preventDefault();
+            const kw = e.target.keyword.value.trim();
             if (!kw) return alert('キーワード入れてね♡');
 
-            document.getElementById("emopostForm").style.display = "none"; 
+            document.getElementById("emopostForm").style.display = "none";
             document.getElementById("loading").style.display = "block";
 
-            // ローディング最低1秒表示（見えやすく）
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 1500)); // ローディング見えやすく
 
             let poem = '';
             try {
