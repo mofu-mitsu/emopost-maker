@@ -119,17 +119,17 @@
 
         async function loadModel() {
             try { 
-                // 多言語mGPTに変更！ 日本語対応少しマシ
-                generator = await pipeline('text-generation', 'Xenova/mGPT');  
-                console.log('モデルロード成功: mGPT');
+                // 日本語特化モデル！ 1.3Bで軽め
+                generator = await pipeline('text-generation', 'Xenova/gpt-neox-japanese-1.3b');  
+                console.log('モデルロード成功: gpt-neox-japanese-1.3b');
                 hideModelLoading();
             } catch (e) { 
-                console.error('mGPTロード失敗、distilgpt2 fallback:', e); 
+                console.error('日本語モデル失敗、distilgpt2 fallback:', e); 
                 try {
                     generator = await pipeline('text-generation', 'Xenova/distilgpt2');
-                    console.log('代替モデルロード: distilgpt2');
+                    console.log('代替モデル: distilgpt2 (でも日本語弱いよ...)');
                 } catch (e2) {
-                    console.error('全モデル失敗:', e2);
+                    console.error('全失敗:', e2);
                 }
                 hideModelLoading();  
             }
