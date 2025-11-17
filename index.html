@@ -12,6 +12,7 @@
     <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
     <meta property="og:url" content="https://mofu-mitsu.github.io/emopost-maker/emopost.html">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="今夜のエモポストメーカー">
     <meta name="twitter:card" content="summary_large_image">
 
     <style>
@@ -32,15 +33,19 @@
         .cute-button:hover { transform: scale(1.05); background: linear-gradient(to right, #d8bfd8, #c0c0ff); }
         .cute-button:disabled { opacity: 0.6; cursor: not-allowed; }
         #resultArea { background: #f0f8ff; border: 2px dashed #b0c4de; border-radius: 1.5em; padding: 2em; box-shadow: 0 4px 12px #e6e6fa; color: #4b0082; font-size: 1.1em; line-height: 1.8; display: none; position: relative; text-align: center; }
-        .copy-icon { position: absolute; top: 1em; right: 1em; font-size: 1.2em; cursor: pointer; color: #9370db; background: rgba(255,255,255,0.8); padding: .3em; border-radius: 50%; }
+        #resultArea h2 { font-size: 1.5em; color: #6a5acd; margin-bottom: 1em; }
+        .copy-icon { position: absolute; top: 1em; right: 1em; font-size: 1.2em; cursor: pointer; color: #9370db; background: rgba(255,255,255,0.8); padding: .3em; border-radius: 50%; transition: .3s; }
+        .copy-icon:hover { color: #6a5acd; transform: scale(1.1); }
         .spinner { border: 6px solid #f3f3f3; border-top: 6px solid #dda0dd; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 1em auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #loading .spinner + p, #modelLoading .spinner + p { margin-top: .5em; color: #9370db; font-weight: bold; }
         #buttonRow { display: flex; justify-content: center; gap: 1em; flex-wrap: wrap; margin-top: 1em; }
+        #longpressSaveArea { text-align: center; margin-top: 1em; }
         #debugLog { margin-top: 1em; font-size: 0.8em; color: #9370db; background: #fff; padding: 0.5em; border-radius: 1em; max-height: 150px; overflow-y: auto; text-align: left; }
         @media (max-width:600px) { h1 { font-size:1.8em; } .container, form, #resultArea, #loading, #modelLoading { padding:1em; width:90%; } .cute-button { font-size:.95em; padding:.6em 1em; } #debugLog { font-size:0.7em; } }
         footer { width: 100%; background: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de; margin-top: auto; text-align: center; }
         #poem-output { white-space: pre-line; min-height: 100px; }
+        .ad-section { margin: 2em auto; max-width: 500px; padding: 1em; background: #fff; border-radius: 1em; box-shadow: 0 0 8px #dda0dd; }
     </style>
 </head>
 <body>
@@ -82,6 +87,7 @@
         </div>
         <div id="longpressSaveArea"></div>
     </div>
+
     <div class="ad-section">
         <p style="font-weight:bold; color:#6a5acd; margin-bottom:0.5em;">ポエム後は季節のアイテムで癒し♪</p>
         <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
@@ -89,6 +95,7 @@
         </a>
         <p style="margin-top:0.5em; color:#6a5acd; font-weight:bold;">🎍 楽天おせち特集2026 🎍 最大350円OFF！</p>
     </div>
+
     <footer>
         <div class="back-to-home">
             <a href="https://mofu-mitsu.github.io/" style="color:#6a5acd; font-weight:bold; text-decoration:none;">TOPへ戻る</a>
@@ -118,35 +125,39 @@
             debugLog.scrollTop = debugLog.scrollHeight;
         }
 
-        // PC誤検知を完全ブロック
+        // デバイス検知: エミュ完全ブロック
         const ua = navigator.userAgent.toLowerCase();
         const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         const screenWidth = window.innerWidth;
-        const isEmulator = ua.includes('nexus') || ua.includes('emulation') || ua.includes('headless');
-        const isMobile = hasTouch && screenWidth < 768 && !isEmulator && (ua.includes('iphone') || ua.includes('ipad') || ua.includes('android') || ua.includes('mobile'));
+        const isEmulator = ua.includes('nexus') || ua.includes('emulation') || ua.includes('headless') || ua.includes('chromebook') || ua.includes('android 6.0');
+        const isMobile = hasTouch && screenWidth < 768 && !isEmulator && (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android') || ua.includes('mobile'));
 
         const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
-        const mobileModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
+        const mobileModel = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";  // 超軽量200MB、日本語可愛い
 
         async function loadModel() {
             const model = isMobile ? mobileModel : pcModel;
-            document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知！ ${model}を呼び出すよ〜♡`;
-            logDebug(`デバイス判定 → ${isMobile ? 'スマホ' : 'PC'} (emulator: ${isEmulator}, width: ${screenWidth}) - モデル: ${model}`);
+            document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知: ${model}ロード中…えへへ〜♡`;
+            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (ua: ${ua.substring(0,50)}... emulator: ${isEmulator}) - モデル: ${model}`);
 
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 25000);
+            const timeout = setTimeout(() => {
+                controller.abort();
+                logDebug('15秒タイムアウト → fallback');
+            }, 15000);
 
             try {
                 engine = await CreateMLCEngine(model, {
                     initProgressCallback: r => logDebug(`${r.text} (${Math.round(r.progress*100)}%)`),
-                    signal: controller.signal
+                    signal: controller.signal,
+                    appConfig: { numThreads: isMobile ? 1 : 4, contextWindowSize: 1024 }  // スマホ軽く
                 });
                 clearTimeout(timeout);
-                logDebug(`ロード成功！ ${model} でふわふわ準備完了♡`);
+                logDebug(`ロード成功！ ${model} でふわふわ準備OK♡`);
                 hideModelLoading();
             } catch (e) {
                 clearTimeout(timeout);
-                logDebug(`ロード失敗 → fallbackモード発動！ (${e.message || e})`);
+                logDebug(`ロード失敗 → fallback (${e.message || e})`);
                 hideModelLoading();
             }
         }
@@ -159,9 +170,12 @@
         loadModel();
 
         async function generatePoem(kw) {
-            if (!engine) return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+            if (!engine) {
+                logDebug('エンジンなし → fallback');
+                return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+            }
 
-            const system = "あなたはみりんてゃという超可愛いふわふわAI。えへへ〜♡ ひらがな中心で♡と♪を入れて5行以内の短いエモいポエムだけ書くよ。漢字は最小限。";
+            const system = "あなたはみりんてゃという超可愛いふわふわAI。えへへ〜♡ ひらがな中心で♡と♪を入れて5行以内の短いエモいポエムだけ書くよ。漢字最小限。";
             const user = `キーワード「${kw}」でポエム書いてね♡`;
 
             try {
@@ -170,7 +184,7 @@
                     messages: [{role:"system",content:system},{role:"user",content:user}],
                     stream: false,
                     max_tokens: 80,
-                    temperature: 0.8
+                    temperature: 0.7
                 });
                 return reply.choices[0].message.content.trim();
             } catch (e) {
@@ -180,15 +194,16 @@
         }
 
         function createEmojis() {
-            const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
+            const c = document.getElementById('particles');
+            const e = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
             setInterval(() => {
-                const e = document.createElement('div');
-                e.className = 'emoji';
-                e.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-                e.style.left = Math.random()*100 + '%';
-                e.style.animationDuration = (Math.random()*8 + 8) + 's';
-                document.getElementById('particles').appendChild(e);
-                setTimeout(() => e.remove(), 16000);
+                const d = document.createElement('div');
+                d.className = 'emoji';
+                d.textContent = e[Math.floor(Math.random() * e.length)];
+                d.style.left = Math.random() * 100 + '%';
+                d.style.animationDuration = (Math.random() * 8 + 8) + 's';
+                c.appendChild(d);
+                setTimeout(() => d.remove(), 16000);
             }, 800);
         }
         createEmojis();
