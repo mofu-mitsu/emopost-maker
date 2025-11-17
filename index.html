@@ -29,14 +29,14 @@
         .cute-button{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;font-size:1.1em;padding:.8em 1.5em;border-radius:2em;cursor:pointer;transition:.3s;margin:.5em auto;display:block;box-shadow:0 4px 6px #ccc}
         .cute-button:hover{transform:scale(1.05);background:linear-gradient(to right,#d8bfd8,#c0c0ff)}
         .cute-button:disabled{opacity:0.6;cursor:not-allowed}
-        #resultArea{background:#f0f8ff;border:2px dashed #b0c4de;border-radius:1.5em;padding:2em;box-shadow:0 4px 12px #e6e6fa;color:#4b0082;font-size:1.1em;line-height:1.8;display:none;position:relative;text-align:center;-webkit-user-select:text;user-select:text}
+        #resultArea{background:#f0f8ff;border:2px dashed #b0c4de;border-radius:1.5em;padding:2em;box-shadow:0 4px 12px #e6e6fa;color:#4b0082;font-size:1.1em;line-height:1.8;display:none;position:relative;text-align:center}
         #resultArea h2{font-size:1.5em;color:#6a5acd;margin-bottom:1em}
-        .copy-icon{position:absolute;top:1em;right:1em;font-size:1.2em;cursor:pointer;color:#9370db;background:rgba(255,255,255,0.8);padding:.3em;border-radius:50%;transition:.3s;z-index:10}
+        .copy-icon{position:absolute;top:1em;right:1em;font-size:1.2em;cursor:pointer;color:#9370db;background:rgba(255,255,255,0.8);padding:.3em;border-radius:50%;transition:.3s}
         .copy-icon:hover{color:#6a5acd;transform:scale(1.1)}
         .spinner{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:1em auto}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
         .progress{font-size:1.4em;color:#9370db;font-weight:bold;margin:0.8em 0}
-        #buttonRow{display:flex;justify-content:center;gap:1em;flex-wrap:wrap;margin-top:1em}
+        .save-notice{color:#9370db;font-size:0.9em;margin-top:0.5em}
         @media(max-width:600px){h1{font-size:1.8em}.container,form,#resultArea,#loading,#modelLoading{padding:1em;width:90%}.cute-button{font-size:.95em;padding:.6em 1em}}
         footer{width:100%;background:#f0f8ff;padding:1em;border-top:2px dashed #b0c4de;margin-top:auto;text-align:center}
         .ad-section{margin:2em auto;max-width:500px;padding:1em;background:#fff;border-radius:1em;box-shadow:0 0 8px #dda0dd}
@@ -48,7 +48,7 @@
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
     <p class="container" style="color:#708090;margin-bottom:1.2em;line-height:1.6">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db">※初回10-30秒待ってね♪</span>
+        <span style="color:#9370db">※初回10-30秒待ってね♪（スマホでも賢いモデル使ってるよ！）</span>
     </p>
 
     <div id="modelLoading" class="container">
@@ -59,7 +59,7 @@
 
     <form id="emopostForm" class="container" style="display:none">
         <label for="keyword">今日の気分やキーワード</label>
-        <input type="text" id="keyword" placeholder="例: 幸せ、疲れた" required>
+        <input type="text" id="keyword" placeholder="例: 幸せ、みつき" required>
         <button type="submit" class="cute-button" id="generateBtn" disabled>生成！♡</button>
     </form>
 
@@ -72,13 +72,14 @@
         <span class="copy-icon" onclick="copyPoem()">📋</span>
         <h2>🌙みりんてゃの夢ポエム♡</h2>
         <p id="poem-output"></p>
+        <p class="save-notice">スマホの方は長押しで画像保存できるよ♡</p>
     </div>
 
     <div id="retryButtons" class="container" style="display:none">
-        <button type="button" class="cute-button" onclick="resetApp()">もう一度！♡</button>
+        <button class="cute-button" onclick="location.reload()">もう一度！♡</button>
         <div id="buttonRow">
-            <button type="button" class="cute-button" onclick="saveImage(event)">画像保存📸</button>
-            <button type="button" class="cute-button" onclick="sharePoem(event)">共有</button>
+            <button class="cute-button" onclick="saveImage()">画像保存</button>
+            <button class="cute-button" onclick="sharePoem()">共有</button>
         </div>
     </div>
 
@@ -92,6 +93,7 @@
 
     <footer><div class="back-to-home"><a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a></div></footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script type="module" src="./web-tokenizers.js"></script>
     <script type="module" src="./web-llm.js"></script>
 
@@ -99,7 +101,7 @@
         import { CreateMLCEngine } from "./web-llm.js";
 
         let engine = null;
-        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
+        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // スマホもPCも賢い1.5B統一！！
 
         async function init() {
             document.getElementById('progressText').textContent = '0%';
@@ -120,14 +122,6 @@
             document.getElementById('generateBtn').disabled = false;
         }
         init();
-
-        window.resetApp = () => {
-            document.getElementById('resultArea').style.display = 'none';
-            document.getElementById('retryButtons').style.display = 'none';
-            document.getElementById('emopostForm').style.display = 'block';
-            document.getElementById('keyword').value = '';
-            document.getElementById('keyword').focus();
-        };
 
         document.getElementById('emopostForm').onsubmit = async e => {
             e.preventDefault();
@@ -158,37 +152,14 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // ★★完璧に動く画像保存（Canvas APIで超シンプル＆エラーゼロ）★★
-        window.saveImage = (e) => {
-            e.preventDefault();
-            const area = document.getElementById('resultArea');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = area.offsetWidth * 2;
-            canvas.height = area.offsetHeight * 2;
-            ctx.scale(2, 2);
-            
-            // 背景
-            ctx.fillStyle = '#f0f8ff';
-            ctx.fillRect(0, 0, canvas.width / 2, canvas.height / 2);
-            
-            // タイトル
-            ctx.font = 'bold 28px sans-serif';
-            ctx.fillStyle = '#6a5acd';
-            ctx.textAlign = 'center';
-            ctx.fillText(area.querySelector('h2').innerText, canvas.width / 4, 60);
-            
-            // ポエム本文
-            ctx.font = '20px sans-serif';
-            ctx.fillStyle = '#4b0082';
-            const lines = area.querySelector('#poem-output').innerText.split('\n');
-            let y = 120;
-            lines.forEach(line => {
-                ctx.fillText(line, canvas.width / 4, y);
-                y += 45;
-            });
+        // スマホでも画像保存できるように長押し対応
+        document.getElementById('resultArea').addEventListener('touchstart', function(e) {
+            longPressTimer = setTimeout(() => saveImage(), 800);
+        });
+        document.getElementById('resultArea').addEventListener('touchend', () => clearTimeout(longPressTimer));
+        document.getElementById('resultArea').addEventListener('touchmove', () => clearTimeout(longPressTimer));
 
+        window.saveImage = () => html2canvas(document.getElementById('resultArea'), {scale:2, useCORS: true}).then(canvas => {
             canvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -197,32 +168,15 @@
                 a.click();
                 URL.revokeObjectURL(url);
             });
-            alert('保存したよ〜♡');
+        });
+
+        window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(()=>alert('コピーしたよ♡'));
+        window.sharePoem = () => {
+            const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
+            navigator.share ? navigator.share({title:'みりんてゃポエム♡',text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
         };
 
-        // ★★完璧に動く共有（チャッピー推奨版）★★
-        window.sharePoem = async (e) => {
-            e.preventDefault();
-            const text = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'みりんてゃポエム♡',
-                        text: text
-                    });
-                } catch (err) {
-                    console.log("共有キャンセルされたよ");
-                }
-            } else {
-                alert("このブラウザは共有できないみたい…Twitterで開く？");
-                open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
-            }
-        };
-
-        window.copyPoem = () => {
-            navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
-        };
-
+        // パーティクル（軽量化）
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
