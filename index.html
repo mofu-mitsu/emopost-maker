@@ -58,7 +58,8 @@
         #loading .spinner + p, #modelLoading .spinner + p { margin-top: .5em; color: #9370db; font-weight: bold; }
         #buttonRow { display: flex; justify-content: center; gap: 1em; flex-wrap: wrap; margin-top: 1em; }
         #longpressSaveArea { text-align: center; margin-top: 1em; }
-        @media (max-width:600px) { h1 { font-size:1.8em; } .container, form, #resultArea, #loading, #modelLoading, #retryButtons { padding:1em; width:90%; } .cute-button { font-size:.95em; padding:.6em 1em; } #buttonRow { flex-direction:column; } }
+        #debugLog { margin-top: 1em; font-size: 0.8em; color: #9370db; background: #fff; padding: 0.5em; border-radius: 1em; max-height: 150px; overflow-y: auto; text-align: left; }
+        @media (max-width:600px) { h1 { font-size:1.8em; } .container, form, #resultArea, #loading, #modelLoading, #retryButtons { padding:1em; width:90%; } .cute-button { font-size:.95em; padding:.6em 1em; } #buttonRow { flex-direction:column; } #debugLog { font-size: 0.7em; } }
         footer { width: 100%; background: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de; margin-top: auto; text-align: center; }
         .ad-section { margin: 2em auto; max-width: 500px; padding: 1em; background: #fff; border-radius: 1em; box-shadow: 0 0 8px #dda0dd; }
         .back-to-home { margin-top: 2em; padding: 1em 0; border-top: 2px solid #dda0dd; }
@@ -72,12 +73,13 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回10-30秒待ってね♪（スマホ/PC検知中…えへへ♡）</span>
+        <span style="color:#9370db;">※初回5-30秒待ってね♪（スマホ/PC検知中…えへへ♡）</span>
     </p>
 
     <div id="modelLoading" class="container">
         <div class="spinner"></div>
         <p id="loadingText">みりんてゃがモデル呼び出してる…えへへ〜♡</p>
+        <div id="debugLog"></div> <!-- 画面デバッグログ -->
     </div>
 
     <form id="emopostForm" class="container" style="display:none;">
@@ -135,32 +137,41 @@
             "みりんてゃの瞳きゅんきゅん♡\nきみと夢みたいな世界\n永遠にふわふわなのっ♪"
         ];
 
-        // デバイス検知: スマホ(iPhone/Android)かPCか
+        const debugLog = document.getElementById('debugLog');
+        function logDebug(msg) {
+            console.log(msg);
+            const p = document.createElement('p');
+            p.textContent = `えへへ〜♡ ログ: ${msg}`;
+            debugLog.appendChild(p);
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+
+        // デバイス検知
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";  // PC: 高品質
-        const mobileModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";  // スマホ: 軽量
+        const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";  // PC高品質
+        const mobileModel = "RedPajama-INCITE-Chat-3B-q4f16_1-MLC";  // スマホ超軽量
 
         async function loadModel() {
             const model = isMobile ? mobileModel : pcModel;
             document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知: ${model}ロード中…えへへ〜♡`;
+            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 - モデル: ${model}`);
 
             try {
                 engine = await CreateMLCEngine(model, {
-                    initProgressCallback: (report) => console.log(`ロード中: ${report.text} (${Math.round(report.progress * 100)}%)`)
+                    initProgressCallback: (report) => {
+                        const progress = Math.round(report.progress * 100);
+                        logDebug(`${report.text} (${progress}%)`);
+                    }
                 });
-                console.log(`WebLLMロード成功: ${model}`);
+                logDebug(`WebLLMロード成功: ${model}`);
                 hideModelLoading();
             } catch (e) {
-                console.error(`モデルロード失敗 (${model}):`, e);
-                // スマホで軽いモデル失敗 → テンプレfallback
+                logDebug(`モデルロード失敗 (${model}): ${e.message || e}`);
                 if (isMobile) {
-                    console.log('スマホ軽量モデル失敗 → テンプレfallbackオンリー');
-                } else {
-                    // PC失敗 → スマホモデル試す（保険）
-                    if (model === pcModel) {
-                        console.log('PCモデル失敗 → スマホ軽量モデルに切り替え');
-                        return loadModel();  // 再帰でモバイルモデル試す
-                    }
+                    logDebug('スマホ超軽量モデル失敗 → テンプレfallbackオンリー');
+                } else if (model === pcModel) {
+                    logDebug('PCモデル失敗 → スマホ超軽量モデルに切り替え');
+                    return loadModel();  // 再帰切り替え
                 }
                 hideModelLoading();
             }
@@ -179,6 +190,7 @@
             const prompt = `あなたはみりんてゃという可愛いAI。えへへ〜♡ ふわふわでエモい短いポエムを書いて。キーワード「${kw}」を使って、5行以内、ひらがな中心で♡と♪を入れてね。例: えへへ〜♡ みりんてゃの瞳キラキラなのっ♪ / きみとふわふわよぉ？♡ / 心きゅんきゅん溶けちゃうよ / 夢みたいな甘い詩贈るね / 永遠に続くのっ♡`;
 
             try {
+                logDebug('ポエム生成開始...');
                 const reply = await engine.chat.completions.create({
                     messages: [{ role: "user", content: prompt }],
                     stream: true,
@@ -193,14 +205,14 @@
                         document.getElementById('poem-output').innerText = poem;
                     }
                 }
+                logDebug('ポエム生成成功！');
                 return poem.trim();
             } catch (err) {
-                console.error('生成エラー:', err);
+                logDebug(`生成エラー: ${err.message || err}`);
                 return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
             }
         }
 
-        // 以下、createEmojis, retry, copyPoem, sharePoem, saveImage, submitイベントは変更なし（前のコードと同じ）
         function createEmojis() {
             const c = document.getElementById('particles');
             const e = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
@@ -223,6 +235,7 @@
             document.getElementById("retryButtons").style.display = "none";
             document.getElementById("longpressSaveArea").innerHTML = '';
             document.getElementById("loading").style.display = "none";
+            debugLog.innerHTML = '';  // リトライでログクリア
         };
 
         window.copyPoem = () => {
