@@ -76,7 +76,6 @@
         <p class="save-notice">スマホの方はここ長押しで画像保存できるよ♡</p>
     </div>
 
-    <!-- ここをformの外に出してtype="button"に変更！これで絶対リロードしない！！ -->
     <div id="retryButtons" class="container" style="display:none">
         <button type="button" class="cute-button" onclick="resetApp()">もう一度！♡</button>
         <div id="buttonRow">
@@ -162,40 +161,62 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
+        // ★ここが超重要！長押しは残しつつスクロールは完全に自由に！
+        let longPressTimer = null;
+        let touchStartY = 0;
+        const resultArea = document.getElementById('resultArea');
+
+        resultArea.addEventListener('touchstart', e => {
+            touchStartY = e.touches[0].clientY;
+            longPressTimer = setTimeout(() => {
+                saveImage();
+                alert('長押しで保存したよ〜♡');
+            }, 800);
+        }, { passive: true });
+
+        resultArea.addEventListener('touchmove', e => {
+            const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+            if (deltaY > 10) { // 10px以上動いたら長押しキャンセル → スクロール自由！
+                clearTimeout(longPressTimer);
+            }
+        }, { passive: true });
+
+        resultArea.addEventListener('touchend', () => {
+            clearTimeout(longPressTimer);
+        }, { passive: true });
+
+        // PC用長押し（おまけ）
+        resultArea.addEventListener('mousedown', () => {
+            longPressTimer = setTimeout(saveImage, 800);
+        });
+        resultArea.addEventListener('mouseup', () => clearTimeout(longPressTimer));
+        resultArea.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
+
         window.saveImage = async () => {
             try {
                 const canvas = await html2canvas(document.getElementById('resultArea'), {scale:2, useCORS:true, backgroundColor:null});
                 canvas.toBlob(blob => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url; a.download = 'mirintya_poem.png';
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    a.href = url;
+                    a.download = 'mirintya_poem.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    alert('保存したよ〜♡');
                 });
-            } catch (err) { alert('保存できなかったよ…😢'); }
+            } catch (err) {
+                alert('保存できなかったよ…😢');
+            }
         };
 
-        let longPressTimer;
-        const resultArea = document.getElementById('resultArea');
-        const startLongPress = (e) => {
-            if (e.touches && e.touches.length > 1) return;
-            longPressTimer = setTimeout(saveImage, 800);
+        window.copyPoem = () => {
+            navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => {
+                alert('コピーしたよ♡');
+            });
         };
-        const cancelLongPress = () => clearTimeout(longPressTimer);
 
-        resultArea.addEventListener('touchstart', startLongPress, {passive: false});
-        resultArea.addEventListener('touchend', cancelLongPress);
-        resultArea.addEventListener('touchmove', cancelLongPress);
-        resultArea.addEventListener('mousedown', startLongPress);
-        resultArea.addEventListener('mouseup', cancelLongPress);
-        resultArea.addEventListener('mouseleave', cancelLongPress);
-
-        window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
-
-        window.sharePoem = (e) => {
-            // ここでe.preventDefault()追加！これで絶対リロードしない！
-            if (e) e.preventDefault();
+        window.sharePoem = () => {
             const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
             if (navigator.share) {
                 navigator.share({title: 'みりんてゃポエム♡', text: txt});
@@ -204,6 +225,7 @@
             }
         };
 
+        // パーティクル
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
