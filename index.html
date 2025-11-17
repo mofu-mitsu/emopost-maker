@@ -12,7 +12,6 @@
     <meta property="og:url" content="https://emopost-maker.pages.dev/">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-
     <style>
         *{box-sizing:border-box}
         body{font-family:"Hiragino Kaku Gothic ProN",sans-serif;background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:starryBG 25s ease infinite;text-align:center;padding:2em;color:#555;margin:0;display:flex;flex-direction:column;align-items:center;min-height:100vh}
@@ -36,10 +35,8 @@
         .copy-icon:hover{color:#6a5acd;transform:scale(1.1)}
         .spinner{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:1em auto}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-        #loading .spinner+p,#modelLoading .spinner+p{margin-top:.5em;color:#9370db;font-weight:bold}
-        #buttonRow{display:flex;justify-content:center;gap:1em;flex-wrap:wrap;margin-top:1em}
-        #debugLog{margin-top:1em;font-size:0.8em;color:#9370db;background:#fff;padding:0.5em;border-radius:1em;max-height:150px;overflow-y:auto;text-align:left}
-        @media(max-width:600px){h1{font-size:1.8em}.container,form,#resultArea,#loading,#modelLoading{padding:1em;width:90%}.cute-button{font-size:.95em;padding:.6em 1em}#debugLog{font-size:0.7em}}
+        .progress{font-size:1.4em;color:#9370db;font-weight:bold;margin:0.8em 0}
+        @media(max-width:600px){h1{font-size:1.8em}.container,form,#resultArea,#loading,#modelLoading{padding:1em;width:90%}.cute-button{font-size:.95em;padding:.6em 1em}}
         footer{width:100%;background:#f0f8ff;padding:1em;border-top:2px dashed #b0c4de;margin-top:auto;text-align:center}
         .ad-section{margin:2em auto;max-width:500px;padding:1em;background:#fff;border-radius:1em;box-shadow:0 0 8px #dda0dd}
         #poem-output{white-space:pre-line;min-height:100px}
@@ -56,7 +53,7 @@
     <div id="modelLoading" class="container">
         <div class="spinner"></div>
         <p id="loadingText">みりんてゃがモデル呼び出してる…えへへ〜♡</p>
-        <div id="debugLog"></div>
+        <p class="progress" id="progressText">0%</p>
     </div>
 
     <form id="emopostForm" class="container" style="display:none">
@@ -95,7 +92,6 @@
     <footer><div class="back-to-home"><a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a></div></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <!-- クエリパラメータ完全除去（Cloudflare対応） -->
     <script type="module" src="./web-tokenizers.js"></script>
     <script type="module" src="./web-llm.js"></script>
 
@@ -103,38 +99,30 @@
         import { CreateMLCEngine } from "./web-llm.js";
 
         let engine = null;
-        const fallback = [
-            "えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡",
-            "ふわふわ〜♡ 心きゅんきゅん溶けちゃうよ\n夢みたいな甘い世界♡ 永遠に続くよぉ？"
-        ];
+        const fallback = ["えへへ〜♡ みりんてゃ、ふわふわなのっ♪\nきみと一緒にキラキラだよ♡"];
 
-        const debugLog = document.getElementById('debugLog');
-        const log = msg => {
-            console.log(msg);
-            const p = document.createElement('p');
-            p.textContent = `えへへ〜♡ ${msg}`;
-            debugLog.appendChild(p);
-            debugLog.scrollTop = debugLog.scrollHeight;
-        };
-
-        // デバイス判定（エミュ完全ブロック）
-        const ua = navigator.userAgent.toLowerCase();
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && !ua.includes('nexus') && !ua.includes('emulation');
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && !navigator.userAgent.toLowerCase().includes('nexus');
 
         const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
         const mobileModel = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
 
         async function init() {
             const model = isMobile ? mobileModel : pcModel;
-            log(`${isMobile ? 'スマホ' : 'PC'}検知 → ${model} ロード開始`);
+            document.getElementById('progressText').textContent = '0%';
+
             try {
                 engine = await CreateMLCEngine(model, {
-                    initProgressCallback: r => log(`${r.text} (${Math.round(r.progress*100)}%)`)
+                    initProgressCallback: info => {
+                        const percent = Math.round(info.progress * 100);
+                        document.getElementById('progressText').textContent = `${percent}%`;
+                        if (percent >= 100) document.getElementById('progressText').textContent = '100% 完了！♡';
+                    }
                 });
-                log('ロード成功！✨ みりんてゃ準備完了♡');
+                document.getElementById('progressText').textContent = 'みりんてゃ準備完了！えへへ〜♡';
             } catch (e) {
-                log('ロード失敗 → fallbackモード (' + e.message + ')');
+                document.getElementById('progressText').textContent = 'オフラインでもふわふわ♡';
             }
+
             document.getElementById('modelLoading').style.display = 'none';
             document.getElementById('emopostForm').style.display = 'block';
             document.getElementById('generateBtn').disabled = false;
@@ -145,22 +133,23 @@
             e.preventDefault();
             const kw = e.target.keyword.value.trim();
             if (!kw) return;
+
             document.getElementById('emopostForm').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
 
-            let poem = fallback[Math.floor(Math.random()*fallback.length)];
+            let poem = fallback[0];
             if (engine) {
                 try {
                     const reply = await engine.chat.completions.create({
                         messages: [
-                            {role:"system",content:"あなたはみりんてゃという超可愛いふわふわAI。えへへ〜♡ ひらがな中心で♡と♪を入れて5行以内の短いエモいポエムだけ書くよ。漢字最小限。"},
-                            {role:"user",content:`キーワード「${kw}」でポエム書いてね♡`}
+                            { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。絶対に日本語のみで、ひらがな中心、♡と♪をたくさん使って、5行以内の短いエモいポエムだけを書くよ。英語は絶対禁止！漢字は最小限！絶対に「えへへ〜♡」を入れること！" },
+                            { role: "user", content: `キーワード「${kw}」でポエム書いてね♡` }
                         ],
-                        max_tokens: 80,
-                        temperature: 0.8
+                        temperature: 0.7,
+                        max_tokens: 100
                     });
                     poem = reply.choices[0].message.content.trim();
-                } catch (err) { log('生成エラー → fallback'); }
+                } catch (err) {}
             }
 
             document.getElementById('loading').style.display = 'none';
@@ -169,7 +158,6 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // パーティクル（スマホは軽量化）
         if (!isMobile) {
             const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
             setInterval(() => {
