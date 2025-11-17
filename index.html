@@ -46,7 +46,7 @@
         label { display: block; text-align: left; margin-bottom: .2em; font-weight: bold; color: #6a5acd; text-shadow: 1px 1px 0 #fff; font-size: 1.05em; }
         input { border: 2px solid #c0c0ff; border-radius: 1em; padding: .5em 1em; font-size: 1em; box-shadow: 0 0 8px #e6e6fa; transition: .3s; width: 100%; background: #f8f8ff; }
         input:focus { outline: none; box-shadow: 0 0 15px #b0c4de; border-color: #9370db; }
-        .cute-button { background: linear-gradient(to right, #e6e6fa, #dda0dd); border: none; color: #fff; font-weight: bold; font-size: 1.1em; padding: .8em 1.5em; border-radius: 2em; cursor: pointer; transition: .3s; margin: .5em auto; display: block; box-shadow: 0 4px 6px #ccc; }
+        [.cute-button] { background: linear-gradient(to right, #e6e6fa, #dda0dd); border: none; color: #fff; font-weight: bold; font-size: 1.1em; padding: .8em 1.5em; border-radius: 2em; cursor: pointer; transition: .3s; margin: .5em auto; display: block; box-shadow: 0 4px 6px #ccc; }
         .cute-button:hover { transform: scale(1.05); background: linear-gradient(to right, #d8bfd8, #c0c0ff); }
         .cute-button:disabled { opacity: 0.6; cursor: not-allowed; }
         #resultArea { background: #f0f8ff; border: 2px dashed #b0c4de; border-radius: 1.5em; padding: 2em; box-shadow: 0 4px 12px #e6e6fa; color: #4b0082; font-size: 1.1em; line-height: 1.8; display: none; position: relative; text-align: center; }
@@ -79,7 +79,7 @@
     <div id="modelLoading" class="container">
         <div class="spinner"></div>
         <p id="loadingText">みりんてゃがモデル呼び出してる…えへへ〜♡</p>
-        <div id="debugLog"></div> <!-- 画面デバッグログ -->
+        <div id="debugLog"></div>
     </div>
 
     <form id="emopostForm" class="container" style="display:none;">
@@ -123,7 +123,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <!-- ローカルWebLLM (type="module"でES6対応) -->
     <script type="module" src="./web-tokenizers.js"></script>
     <script type="module" src="./web-llm.js"></script>
     <script type="module">
@@ -146,15 +145,16 @@
             debugLog.scrollTop = debugLog.scrollHeight;
         }
 
-        // デバイス検知
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";  // PC高品質
-        const mobileModel = "RedPajama-INCITE-Chat-3B-q4f16_1-MLC";  // スマホ超軽量
+        // デバイス検知強化: userAgent + タッチ対応
+        const ua = navigator.userAgent.toLowerCase();
+        const isMobile = ('ontouchstart' in window) || (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android'));
+        const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
+        const mobileModel = "RedPajama-INCITE-Chat-3B-v1-q4f16_1-MLC";  // v1追加！
 
         async function loadModel() {
             const model = isMobile ? mobileModel : pcModel;
             document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知: ${model}ロード中…えへへ〜♡`;
-            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 - モデル: ${model}`);
+            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (userAgent: ${navigator.userAgent}) - モデル: ${model}`);
 
             try {
                 engine = await CreateMLCEngine(model, {
@@ -168,10 +168,10 @@
             } catch (e) {
                 logDebug(`モデルロード失敗 (${model}): ${e.message || e}`);
                 if (isMobile) {
-                    logDebug('スマホ超軽量モデル失敗 → テンプレfallbackオンリー');
+                    logDebug('スマホモデル失敗 → テンプレfallback');
                 } else if (model === pcModel) {
-                    logDebug('PCモデル失敗 → スマホ超軽量モデルに切り替え');
-                    return loadModel();  // 再帰切り替え
+                    logDebug('PCモデル失敗 → スマホモデル試す');
+                    return loadModel();
                 }
                 hideModelLoading();
             }
@@ -235,7 +235,7 @@
             document.getElementById("retryButtons").style.display = "none";
             document.getElementById("longpressSaveArea").innerHTML = '';
             document.getElementById("loading").style.display = "none";
-            debugLog.innerHTML = '';  // リトライでログクリア
+            debugLog.innerHTML = '';
         };
 
         window.copyPoem = () => {
@@ -254,7 +254,7 @@
                 const a = document.createElement('a');
                 a.download = 'mirintya_poem.png';
                 a.href = c.toDataURL();
-                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) a.click();
+                if (!isMobile) a.click();
                 else {
                     const area = document.getElementById('longpressSaveArea');
                     area.innerHTML = '';
