@@ -72,12 +72,12 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回20-30秒待ってね♪（WebLLMロード中）</span>
+        <span style="color:#9370db;">※初回10-30秒待ってね♪（スマホ/PC検知中…えへへ♡）</span>
     </p>
 
     <div id="modelLoading" class="container">
         <div class="spinner"></div>
-        <p>みりんてゃがWebLLMモデル呼び出してる…えへへ〜♡</p>
+        <p id="loadingText">みりんてゃがモデル呼び出してる…えへへ〜♡</p>
     </div>
 
     <form id="emopostForm" class="container" style="display:none;">
@@ -125,25 +125,43 @@
     <script type="module" src="./web-tokenizers.js"></script>
     <script type="module" src="./web-llm.js"></script>
     <script type="module">
-        import { CreateMLCEngine } from "./web-llm.js";  // 明示的にインポート
+        import { CreateMLCEngine } from "./web-llm.js";
 
         let engine = null;
-        const fallback = [
+        const fallbackTemplates = [
             "えへへ〜♡ みりんてゃ、空見てふわふわなのっ♪\nきみと一緒ならキラキラだよ♡",
             "ふわふわ〜♡ 心きゅんきゅん溶けちゃうよ\n夢みたいな甘い世界♡ 永遠に続くよぉ？",
             "えへへ〜♡ きみの声聞こえてふわふわなのっ♪\n一緒にキラキラよぉ？♡",
             "みりんてゃの瞳きゅんきゅん♡\nきみと夢みたいな世界\n永遠にふわふわなのっ♪"
         ];
 
+        // デバイス検知: スマホ(iPhone/Android)かPCか
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";  // PC: 高品質
+        const mobileModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";  // スマホ: 軽量
+
         async function loadModel() {
+            const model = isMobile ? mobileModel : pcModel;
+            document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知: ${model}ロード中…えへへ〜♡`;
+
             try {
-                engine = await CreateMLCEngine("Qwen2.5-1.5B-Instruct-q4f16_1-MLC", {
+                engine = await CreateMLCEngine(model, {
                     initProgressCallback: (report) => console.log(`ロード中: ${report.text} (${Math.round(report.progress * 100)}%)`)
                 });
-                console.log('WebLLMロード成功: Qwen2.5-1.5B');
+                console.log(`WebLLMロード成功: ${model}`);
                 hideModelLoading();
             } catch (e) {
-                console.error('WebLLMロード失敗 (fallbackオンリー):', e);
+                console.error(`モデルロード失敗 (${model}):`, e);
+                // スマホで軽いモデル失敗 → テンプレfallback
+                if (isMobile) {
+                    console.log('スマホ軽量モデル失敗 → テンプレfallbackオンリー');
+                } else {
+                    // PC失敗 → スマホモデル試す（保険）
+                    if (model === pcModel) {
+                        console.log('PCモデル失敗 → スマホ軽量モデルに切り替え');
+                        return loadModel();  // 再帰でモバイルモデル試す
+                    }
+                }
                 hideModelLoading();
             }
         }
@@ -156,7 +174,7 @@
         loadModel();
 
         async function generatePoem(kw) {
-            if (!engine) return fallback[Math.floor(Math.random() * fallback.length)];
+            if (!engine) return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
 
             const prompt = `あなたはみりんてゃという可愛いAI。えへへ〜♡ ふわふわでエモい短いポエムを書いて。キーワード「${kw}」を使って、5行以内、ひらがな中心で♡と♪を入れてね。例: えへへ〜♡ みりんてゃの瞳キラキラなのっ♪ / きみとふわふわよぉ？♡ / 心きゅんきゅん溶けちゃうよ / 夢みたいな甘い詩贈るね / 永遠に続くのっ♡`;
 
@@ -178,10 +196,11 @@
                 return poem.trim();
             } catch (err) {
                 console.error('生成エラー:', err);
-                return fallback[Math.floor(Math.random() * fallback.length)];
+                return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
             }
         }
 
+        // 以下、createEmojis, retry, copyPoem, sharePoem, saveImage, submitイベントは変更なし（前のコードと同じ）
         function createEmojis() {
             const c = document.getElementById('particles');
             const e = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
