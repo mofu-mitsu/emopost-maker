@@ -47,7 +47,7 @@
     <div class="particles" id="particles"></div>
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
     <p class="container" style="color:#708090;margin-bottom:1.2em;line-height:1.6">
-        今日の気分やキーワードを入れてね。みりんてゃみたいにAIがふわふわポエム生成するよ〜♡<br>
+        今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
         <span style="color:#9370db">※初回10-30秒待ってね♪</span>
     </p>
 
@@ -101,7 +101,7 @@
         import { CreateMLCEngine } from "./web-llm.js";
 
         let engine = null;
-        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // スマホもPCも賢い1.5B統一！！
+        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
 
         async function init() {
             document.getElementById('progressText').textContent = '0%';
@@ -152,13 +152,7 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // スマホでも画像保存できるように長押し対応
-        document.getElementById('resultArea').addEventListener('touchstart', function(e) {
-            longPressTimer = setTimeout(() => saveImage(), 800);
-        });
-        document.getElementById('resultArea').addEventListener('touchend', () => clearTimeout(longPressTimer));
-        document.getElementById('resultArea').addEventListener('touchmove', () => clearTimeout(longPressTimer));
-
+        // 画像保存関数（ボタン押しても長押ししても絶対動く）
         window.saveImage = async () => {
             try {
                 const canvas = await html2canvas(document.getElementById('resultArea'), {
@@ -166,9 +160,7 @@
                     useCORS: true,
                     backgroundColor: null
                 });
-    
                 canvas.toBlob(blob => {
-                    // PC・スマホ共通でダウンロード
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -177,39 +169,43 @@
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
+                    alert('保存したよ〜♡');
                 });
             } catch (err) {
                 alert('保存できなかったよ…ごめんね😢');
             }
         };
-    
-        // スマホ長押しで保存（800ms長押しで発火）
+
+        // 長押しで保存（スマホ・PC両対応）
         let longPressTimer;
         const resultArea = document.getElementById('resultArea');
-        resultArea.addEventListener('touchstart', e => {
-            e.preventDefault(); // スクロール防止
+        const startLongPress = (e) => {
+            e.preventDefault();
             longPressTimer = setTimeout(() => {
                 saveImage();
-                alert('長押しで保存したよ♡');
             }, 800);
-        });
-        resultArea.addEventListener('touchend', () => clearTimeout(longPressTimer));
-        resultArea.addEventListener('touchmove', () => clearTimeout(longPressTimer));
-    
-        // PCでも長押し対応（おまけ）
-        resultArea.addEventListener('mousedown', () => {
-            longPressTimer = setTimeout(() => saveImage(), 800);
-        });
-        resultArea.addEventListener('mouseup', () => clearTimeout(longPressTimer));
-        resultArea.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
-    </script>
-        window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(()=>alert('コピーしたよ♡'));
+        };
+        const cancelLongPress = () => clearTimeout(longPressTimer);
+
+        resultArea.addEventListener('touchstart', startLongPress);
+        resultArea.addEventListener('touchend', cancelLongPress);
+        resultArea.addEventListener('touchmove', cancelLongPress);
+        resultArea.addEventListener('mousedown', startLongPress);
+        resultArea.addEventListener('mouseup', cancelLongPress);
+        resultArea.addEventListener('mouseleave', cancelLongPress);
+
+        window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
+
         window.sharePoem = () => {
             const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            navigator.share ? navigator.share({title:'みりんてゃポエム♡',text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
+            if (navigator.share) {
+                navigator.share({title: 'みりんてゃポエム♡', text: txt});
+            } else {
+                open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
+            }
         };
 
-        // パーティクル（軽量化）
+        // パーティクル
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
