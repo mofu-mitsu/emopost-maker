@@ -77,8 +77,8 @@
     <div id="retryButtons" class="container" style="display:none">
         <button type="button" class="cute-button" onclick="resetApp()">もう一度！♡</button>
         <div id="buttonRow">
-            <button type="button" class="cute-button" onclick="saveImage()">画像保存📸</button>
-            <button type="button" class="cute-button" onclick="sharePoem()">共有</button>
+            <button type="button" class="cute-button" onclick="saveImage(event)">画像保存📸</button>
+            <button type="button" class="cute-button" onclick="sharePoem(event)">共有</button>
         </div>
     </div>
 
@@ -92,7 +92,7 @@
 
     <footer><div class="back-to-home"><a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a></div></footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- html2canvas完全廃止！！！ -->
     <script type="module" src="./web-tokenizers.js"></script>
     <script type="module" src="./web-llm.js"></script>
 
@@ -159,30 +159,40 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        window.saveImage = async () => {
-            try {
-                const canvas = await html2canvas(document.getElementById('resultArea'), {scale:2, useCORS:true, backgroundColor:null});
-                canvas.toBlob(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'mirintya_poem.png';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    alert('保存したよ〜♡');
-                });
-            } catch (err) {
-                alert('保存できなかったよ…😢');
-            }
+        // ★★これが新・画像保存関数（html2canvas完全廃止）★★
+        window.saveImage = (e) => {
+            if (e) e.preventDefault();
+            const area = document.getElementById('resultArea');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = area.offsetWidth * 2;
+            canvas.height = area.offsetHeight * 2;
+            ctx.scale(2, 2);
+            ctx.fillStyle = '#f0f8ff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '1.1em sans-serif';
+            ctx.fillStyle = '#4b0082';
+            ctx.textAlign = 'center';
+            ctx.fillText(area.querySelector('h2').innerText, canvas.width/4, 60);
+            const lines = area.querySelector('#poem-output').innerText.split('\n');
+            let y = 120;
+            lines.forEach(line => {
+                ctx.fillText(line, canvas.width/4, y);
+                y += 50;
+            });
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mirintya_poem.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+            alert('保存したよ〜♡');
         };
 
-        window.copyPoem = () => {
-            navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
-        };
-
-        window.sharePoem = () => {
+        window.sharePoem = (e) => {
+            if (e) e.preventDefault();
             const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
             if (navigator.share) {
                 navigator.share({title: 'みりんてゃポエム♡', text: txt});
@@ -191,7 +201,10 @@
             }
         };
 
-        // パーティクルはそのまま
+        window.copyPoem = () => {
+            navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
+        };
+
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
