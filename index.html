@@ -36,9 +36,7 @@
         .spinner{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:1em auto}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
         .progress{font-size:1.4em;color:#9370db;font-weight:bold;margin:0.8em 0}
-        .save-notice{color:#9370db;font-size:0.9em;margin-top:0.5em}
         #buttonRow{display:flex;justify-content:center;gap:1em;flex-wrap:wrap;margin-top:1em}
-        .longpress-area{position:absolute;bottom:10px;right:10px;background:rgba(255,182,193,0.7);color:#fff;padding:8px 12px;border-radius:20px;font-size:0.8em;z-index:100;cursor:pointer;opacity:0.8}
         @media(max-width:600px){h1{font-size:1.8em}.container,form,#resultArea,#loading,#modelLoading{padding:1em;width:90%}.cute-button{font-size:.95em;padding:.6em 1em}}
         footer{width:100%;background:#f0f8ff;padding:1em;border-top:2px dashed #b0c4de;margin-top:auto;text-align:center}
         .ad-section{margin:2em auto;max-width:500px;padding:1em;background:#fff;border-radius:1em;box-shadow:0 0 8px #dda0dd}
@@ -70,17 +68,16 @@
         <p>みりんてゃがポエム紡いでる…えへへ〜♡</p>
     </div>
 
-    <div id="resultArea" class="container" style="display:none;position:relative">
+    <div id="resultArea" class="container" style="display:none">
         <span class="copy-icon" onclick="copyPoem()">📋</span>
         <h2>🌙みりんてゃの夢ポエム♡</h2>
         <p id="poem-output"></p>
-        <div class="longpress-area" id="longpressArea">長押しで保存♡</div>
     </div>
 
     <div id="retryButtons" class="container" style="display:none">
         <button type="button" class="cute-button" onclick="resetApp()">もう一度！♡</button>
         <div id="buttonRow">
-            <button type="button" class="cute-button" onclick="saveImage()">画像保存</button>
+            <button type="button" class="cute-button" onclick="saveImage()">画像保存📸</button>
             <button type="button" class="cute-button" onclick="sharePoem()">共有</button>
         </div>
     </div>
@@ -174,29 +171,12 @@
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
+                    alert('保存したよ〜♡');
                 });
             } catch (err) {
                 alert('保存できなかったよ…😢');
             }
         };
-
-        // ★長押しエリアをresultAreaから完全に切り離した！これでスクロール100%自由！
-        const longpressArea = document.getElementById('longpressArea');
-        let longPressTimer = null;
-
-        longpressArea.addEventListener('touchstart', e => {
-            e.stopPropagation(); // ここ大事！親要素への伝播を止める
-            longPressTimer = setTimeout(() => {
-                saveImage();
-                alert('長押しで保存したよ〜♡');
-            }, 800);
-        }, {passive: true});
-
-        longpressArea.addEventListener('touchend', () => clearTimeout(longPressTimer));
-        longpressArea.addEventListener('touchmove', e => {
-            e.stopPropagation();
-            clearTimeout(longPressTimer);
-        }, {passive: true});
 
         window.copyPoem = () => {
             navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
@@ -211,6 +191,7 @@
             }
         };
 
+        // パーティクルはそのまま
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
