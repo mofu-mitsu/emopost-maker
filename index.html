@@ -208,11 +208,6 @@
             const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
             navigator.share ? navigator.share({title:'みりんてゃポエム♡',text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
         };
-        window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(()=>alert('コピーしたよ♡'));
-        window.sharePoem = () => {
-            const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            navigator.share ? navigator.share({title:'みりんてゃポエム♡',text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
-        };
 
         // パーティクル（軽量化）
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
