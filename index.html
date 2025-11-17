@@ -10,7 +10,6 @@
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
     <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
     <meta property="og:url" content="https://emopost-maker.pages.dev/">
-    <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <style>
         *{box-sizing:border-box}
@@ -29,9 +28,9 @@
         .cute-button{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;font-size:1.1em;padding:.8em 1.5em;border-radius:2em;cursor:pointer;transition:.3s;margin:.5em auto;display:block;box-shadow:0 4px 6px #ccc}
         .cute-button:hover{transform:scale(1.05);background:linear-gradient(to right,#d8bfd8,#c0c0ff)}
         .cute-button:disabled{opacity:0.6;cursor:not-allowed}
-        #resultArea{background:#f0f8ff;border:2px dashed #b0c4de;border-radius:1.5em;padding:2em;box-shadow:0 4px 12px #e6e6fa;color:#4b0082;font-size:1.1em;line-height:1.8;display:none;position:relative;text-align:center}
+        #resultArea{background:#f0f8ff;border:2px dashed #b0c4de;border-radius:1.5em;padding:2em;box-shadow:0 4px 12px #e6e6fa;color:#4b0082;font-size:1.1em;line-height:1.8;display:none;position:relative;text-align:center;-webkit-user-select:text;user-select:text}
         #resultArea h2{font-size:1.5em;color:#6a5acd;margin-bottom:1em}
-        .copy-icon{position:absolute;top:1em;right:1em;font-size:1.2em;cursor:pointer;color:#9370db;background:rgba(255,255,255,0.8);padding:.3em;border-radius:50%;transition:.3s}
+        .copy-icon{position:absolute;top:1em;right:1em;font-size:1.2em;cursor:pointer;color:#9370db;background:rgba(255,255,255,0.8);padding:.3em;border-radius:50%;transition:.3s;z-index:10}
         .copy-icon:hover{color:#6a5acd;transform:scale(1.1)}
         .spinner{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:1em auto}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
@@ -76,7 +75,8 @@
     </div>
 
     <div id="retryButtons" class="container" style="display:none">
-        <button class="cute-button" onclick="location.reload()">もう一度！♡</button>
+        <!-- ここを「リセット」方式に変更！勝手にリロードしない！ -->
+        <button class="cute-button" onclick="resetApp()">もう一度！♡</button>
         <div id="buttonRow">
             <button class="cute-button" onclick="saveImage()">画像保存</button>
             <button class="cute-button" onclick="sharePoem()">共有</button>
@@ -123,6 +123,15 @@
         }
         init();
 
+        // もう一度！ボタン → ページリロードじゃなくてリセット！
+        window.resetApp = () => {
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('retryButtons').style.display = 'none';
+            document.getElementById('emopostForm').style.display = 'block';
+            document.getElementById('keyword').value = '';
+            document.getElementById('keyword').focus();
+        };
+
         document.getElementById('emopostForm').onsubmit = async e => {
             e.preventDefault();
             const kw = e.target.keyword.value.trim();
@@ -152,42 +161,31 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // 画像保存関数（ボタン押しても長押ししても絶対動く）
+        // 画像保存（ボタンも長押しも完璧）
         window.saveImage = async () => {
             try {
-                const canvas = await html2canvas(document.getElementById('resultArea'), {
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: null
-                });
+                const canvas = await html2canvas(document.getElementById('resultArea'), {scale:2, useCORS:true, backgroundColor:null});
                 canvas.toBlob(blob => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'mirintya_poem.png';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
+                    a.href = url; a.download = 'mirintya_poem.png';
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     alert('保存したよ〜♡');
                 });
-            } catch (err) {
-                alert('保存できなかったよ…ごめんね😢');
-            }
+            } catch (err) { alert('保存できなかったよ…😢'); }
         };
 
-        // 長押しで保存（スマホ・PC両対応）
+        // 長押し保存（タッチ操作を邪魔しないよう調整）
         let longPressTimer;
         const resultArea = document.getElementById('resultArea');
         const startLongPress = (e) => {
-            e.preventDefault();
-            longPressTimer = setTimeout(() => {
-                saveImage();
-            }, 800);
+            if (e.touches && e.touches.length > 1) return; // マルチタッチ無視
+            longPressTimer = setTimeout(saveImage, 800);
         };
         const cancelLongPress = () => clearTimeout(longPressTimer);
 
-        resultArea.addEventListener('touchstart', startLongPress);
+        resultArea.addEventListener('touchstart', startLongPress, {passive: false});
         resultArea.addEventListener('touchend', cancelLongPress);
         resultArea.addEventListener('touchmove', cancelLongPress);
         resultArea.addEventListener('mousedown', startLongPress);
@@ -195,14 +193,9 @@
         resultArea.addEventListener('mouseleave', cancelLongPress);
 
         window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
-
         window.sharePoem = () => {
             const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            if (navigator.share) {
-                navigator.share({title: 'みりんてゃポエム♡', text: txt});
-            } else {
-                open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
-            }
+            navigator.share ? navigator.share({title:'みりんてゃポエム♡', text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
         };
 
         // パーティクル
