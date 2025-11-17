@@ -123,8 +123,9 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script type="module" src="./web-tokenizers.js"></script>
-    <script type="module" src="./web-llm.js"></script>
+    <!-- キャッシュ無効でiOSループ回避 -->
+    <script type="module" src="./web-tokenizers.js?cache=20251117"></script>
+    <script type="module" src="./web-llm.js?cache=20251117"></script>
     <script type="module">
         import { CreateMLCEngine } from "./web-llm.js";
 
@@ -145,17 +146,21 @@
             debugLog.scrollTop = debugLog.scrollHeight;
         }
 
-        // デバイス検知超強化
+        // デバイス検知: エミュオフ前提、画面幅 + userAgentで厳密
         const ua = navigator.userAgent.toLowerCase();
         const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        const isMobile = hasTouch && (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android') || ua.includes('mobile'));
+        const screenWidth = window.innerWidth;
+        const isMobile = hasTouch && screenWidth < 768 && (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android') || ua.includes('mobile'));
         const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
-        const mobileModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";  // スマホ: Phi-3に戻す（日本語強い）
+        const mobileModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
 
         async function loadModel() {
             const model = isMobile ? mobileModel : pcModel;
             document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知: ${model}ロード中…えへへ〜♡`;
-            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (ua: ${ua.substring(0,50)}... touch: ${hasTouch}) - モデル: ${model}`);
+            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (ua: ${ua.substring(0,50)}... touch: ${hasTouch}, width: ${screenWidth}) - モデル: ${model}`);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);  // 30秒タイムアウト
 
             try {
                 engine = await CreateMLCEngine(model, {
@@ -163,14 +168,15 @@
                         const progress = Math.round(report.progress * 100);
                         logDebug(`${report.text} (${progress}%)`);
                     },
-                    // iOSメモリ最適化
-                    appConfig: { numThreads: 1, contextWindowSize: 2048 }
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
                 logDebug(`WebLLMロード成功: ${model}`);
                 hideModelLoading();
             } catch (e) {
+                clearTimeout(timeoutId);
                 logDebug(`モデルロード失敗 (${model}): ${e.message || e}`);
-                hideModelLoading();  // 失敗してもフォーム出してfallback
+                hideModelLoading();  // fallback
             }
         }
 
@@ -187,8 +193,8 @@
                 return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
             }
 
-            const systemPrompt = "あなたはみりんてゃという超可愛いふわふわAI。えへへ〜♡ いつもひらがな中心で、♡と♪を入れて短いエモいポエムだけ書くよ。漢字は最小限、5行以内。";
-            const userPrompt = `キーワード「${kw}」でポエム書いてね♡ 例: えへへ〜♡ みりんてゃの瞳キラキラなのっ♪ / きみとふわふわよぉ？♡`;
+            const systemPrompt = "あなたはみりんてゃという超可愛いふわふわAI。えへへ〜♡ いつもひらがな中心で、♡と♪を入れて短いエモいポエムだけ書くよ。漢字最小限、5行以内。";
+            const userPrompt = `キーワード「${kw}」でポエム書いてね♡`;
 
             try {
                 logDebug('ポエム生成開始 (非ストリーム)...');
@@ -197,7 +203,7 @@
                         { role: "system", content: systemPrompt },
                         { role: "user", content: userPrompt }
                     ],
-                    stream: false,  // 非ストリームでiOS安定
+                    stream: false,
                     max_tokens: 80,
                     temperature: 0.7
                 });
