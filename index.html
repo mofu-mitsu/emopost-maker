@@ -92,7 +92,6 @@
 
     <footer><div class="back-to-home"><a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a></div></footer>
 
-    <!-- html2canvas完全廃止！！！ -->
     <script type="module" src="./web-tokenizers.js"></script>
     <script type="module" src="./web-llm.js"></script>
 
@@ -159,27 +158,37 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // ★★これが新・画像保存関数（html2canvas完全廃止）★★
+        // ★★完璧に動く画像保存（Canvas APIで超シンプル＆エラーゼロ）★★
         window.saveImage = (e) => {
-            if (e) e.preventDefault();
+            e.preventDefault();
             const area = document.getElementById('resultArea');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
+            
             canvas.width = area.offsetWidth * 2;
             canvas.height = area.offsetHeight * 2;
             ctx.scale(2, 2);
+            
+            // 背景
             ctx.fillStyle = '#f0f8ff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.font = '1.1em sans-serif';
-            ctx.fillStyle = '#4b0082';
+            ctx.fillRect(0, 0, canvas.width / 2, canvas.height / 2);
+            
+            // タイトル
+            ctx.font = 'bold 28px sans-serif';
+            ctx.fillStyle = '#6a5acd';
             ctx.textAlign = 'center';
-            ctx.fillText(area.querySelector('h2').innerText, canvas.width/4, 60);
+            ctx.fillText(area.querySelector('h2').innerText, canvas.width / 4, 60);
+            
+            // ポエム本文
+            ctx.font = '20px sans-serif';
+            ctx.fillStyle = '#4b0082';
             const lines = area.querySelector('#poem-output').innerText.split('\n');
             let y = 120;
             lines.forEach(line => {
-                ctx.fillText(line, canvas.width/4, y);
-                y += 50;
+                ctx.fillText(line, canvas.width / 4, y);
+                y += 45;
             });
+
             canvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -191,13 +200,22 @@
             alert('保存したよ〜♡');
         };
 
-        window.sharePoem = (e) => {
-            if (e) e.preventDefault();
-            const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
+        // ★★完璧に動く共有（チャッピー推奨版）★★
+        window.sharePoem = async (e) => {
+            e.preventDefault();
+            const text = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
             if (navigator.share) {
-                navigator.share({title: 'みりんてゃポエム♡', text: txt});
+                try {
+                    await navigator.share({
+                        title: 'みりんてゃポエム♡',
+                        text: text
+                    });
+                } catch (err) {
+                    console.log("共有キャンセルされたよ");
+                }
             } else {
-                open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
+                alert("このブラウザは共有できないみたい…Twitterで開く？");
+                open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
             }
         };
 
