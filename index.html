@@ -99,33 +99,31 @@
 
     <script type="module">
         import { CreateMLCEngine } from "./web-llm.js";
-
         let engine = null;
-        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // スマホもPCも賢い1.5B統一！！
+        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
 
         async function init() {
-            document.getElementById('progressText').textContent = '0%';
             try {
-                engine = await CreateMLCEngine(model, {
-                    initProgressCallback: info => {
-                        const percent = Math.round(info.progress * 100);
-                        document.getElementById('progressText').textContent = `${percent}%`;
-                        if (percent >= 100) document.getElementById('progressText').textContent = '100% 完了！♡';
-                    }
-                });
-                document.getElementById('progressText').textContent = 'みりんてゃ準備完了！えへへ〜♡';
-            } catch (e) {
-                document.getElementById('progressText').textContent = 'オフラインでもふわふわ♡';
-            }
+                engine = await CreateMLCEngine(model, { initProgressCallback: info => {
+                    document.getElementById('progressText').textContent = Math.round(info.progress * 100) + '%';
+                }});
+            } catch (e) {}
             document.getElementById('modelLoading').style.display = 'none';
             document.getElementById('emopostForm').style.display = 'block';
             document.getElementById('generateBtn').disabled = false;
         }
         init();
 
+        window.resetApp = () => {
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('retryButtons').style.display = 'none';
+            document.getElementById('emopostForm').style.display = 'block';
+            document.getElementById('keyword').value = '';
+        };
+
         document.getElementById('emopostForm').onsubmit = async e => {
             e.preventDefault();
-            const kw = e.target.keyword.value.trim();
+            const kw = document.getElementById('keyword').value.trim();
             if (!kw) return;
 
             document.getElementById('emopostForm').style.display = 'none';
@@ -152,31 +150,37 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // スマホでも画像保存できるように長押し対応
-        document.getElementById('resultArea').addEventListener('touchstart', function(e) {
-            longPressTimer = setTimeout(() => saveImage(), 800);
-        });
-        document.getElementById('resultArea').addEventListener('touchend', () => clearTimeout(longPressTimer));
-        document.getElementById('resultArea').addEventListener('touchmove', () => clearTimeout(longPressTimer));
+        // ★長押しイベント完全削除 → スクロール100%自由
+        // ★html2canvasはそのまま使う（これが一番安定）
 
-        window.saveImage = () => html2canvas(document.getElementById('resultArea'), {scale:2, useCORS: true}).then(canvas => {
-            canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'mirintya_poem.png';
-                a.click();
-                URL.revokeObjectURL(url);
+        window.saveImage = () => {
+            html2canvas(document.getElementById('resultArea'), {scale: 2, useCORS: true, backgroundColor: null}).then(canvas => {
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'mirintya_poem.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
             });
-        });
-
-        window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(()=>alert('コピーしたよ♡'));
-        window.sharePoem = () => {
-            const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            navigator.share ? navigator.share({title:'みりんてゃポエム♡',text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
+            alert('保存したよ〜♡');
         };
 
-        // パーティクル（軽量化）
+        window.sharePoem = () => {
+            const text = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
+            if (navigator.share) {
+                navigator.share({title: 'みりんてゃポエム♡', text});
+            } else {
+                open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
+            }
+        };
+
+        window.copyPoem = () => {
+            navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
+        };
+
+        // パーティクルはそのまま
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
