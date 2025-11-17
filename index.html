@@ -38,6 +38,7 @@
         .progress{font-size:1.4em;color:#9370db;font-weight:bold;margin:0.8em 0}
         .save-notice{color:#9370db;font-size:0.9em;margin-top:0.5em}
         #buttonRow{display:flex;justify-content:center;gap:1em;flex-wrap:wrap;margin-top:1em}
+        .longpress-area{position:absolute;bottom:10px;right:10px;background:rgba(255,182,193,0.7);color:#fff;padding:8px 12px;border-radius:20px;font-size:0.8em;z-index:100;cursor:pointer;opacity:0.8}
         @media(max-width:600px){h1{font-size:1.8em}.container,form,#resultArea,#loading,#modelLoading{padding:1em;width:90%}.cute-button{font-size:.95em;padding:.6em 1em}}
         footer{width:100%;background:#f0f8ff;padding:1em;border-top:2px dashed #b0c4de;margin-top:auto;text-align:center}
         .ad-section{margin:2em auto;max-width:500px;padding:1em;background:#fff;border-radius:1em;box-shadow:0 0 8px #dda0dd}
@@ -69,11 +70,11 @@
         <p>みりんてゃがポエム紡いでる…えへへ〜♡</p>
     </div>
 
-    <div id="resultArea" class="container" style="display:none">
+    <div id="resultArea" class="container" style="display:none;position:relative">
         <span class="copy-icon" onclick="copyPoem()">📋</span>
         <h2>🌙みりんてゃの夢ポエム♡</h2>
         <p id="poem-output"></p>
-        <p class="save-notice">スマホの方はここ長押しで画像保存できるよ♡</p>
+        <div class="longpress-area" id="longpressArea">長押しで保存♡</div>
     </div>
 
     <div id="retryButtons" class="container" style="display:none">
@@ -161,37 +162,6 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // ★ここが超重要！長押しは残しつつスクロールは完全に自由に！
-        let longPressTimer = null;
-        let touchStartY = 0;
-        const resultArea = document.getElementById('resultArea');
-
-        resultArea.addEventListener('touchstart', e => {
-            touchStartY = e.touches[0].clientY;
-            longPressTimer = setTimeout(() => {
-                saveImage();
-                alert('長押しで保存したよ〜♡');
-            }, 800);
-        }, { passive: true });
-
-        resultArea.addEventListener('touchmove', e => {
-            const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
-            if (deltaY > 10) { // 10px以上動いたら長押しキャンセル → スクロール自由！
-                clearTimeout(longPressTimer);
-            }
-        }, { passive: true });
-
-        resultArea.addEventListener('touchend', () => {
-            clearTimeout(longPressTimer);
-        }, { passive: true });
-
-        // PC用長押し（おまけ）
-        resultArea.addEventListener('mousedown', () => {
-            longPressTimer = setTimeout(saveImage, 800);
-        });
-        resultArea.addEventListener('mouseup', () => clearTimeout(longPressTimer));
-        resultArea.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
-
         window.saveImage = async () => {
             try {
                 const canvas = await html2canvas(document.getElementById('resultArea'), {scale:2, useCORS:true, backgroundColor:null});
@@ -210,10 +180,26 @@
             }
         };
 
+        // ★長押しエリアをresultAreaから完全に切り離した！これでスクロール100%自由！
+        const longpressArea = document.getElementById('longpressArea');
+        let longPressTimer = null;
+
+        longpressArea.addEventListener('touchstart', e => {
+            e.stopPropagation(); // ここ大事！親要素への伝播を止める
+            longPressTimer = setTimeout(() => {
+                saveImage();
+                alert('長押しで保存したよ〜♡');
+            }, 800);
+        }, {passive: true});
+
+        longpressArea.addEventListener('touchend', () => clearTimeout(longPressTimer));
+        longpressArea.addEventListener('touchmove', e => {
+            e.stopPropagation();
+            clearTimeout(longPressTimer);
+        }, {passive: true});
+
         window.copyPoem = () => {
-            navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => {
-                alert('コピーしたよ♡');
-            });
+            navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
         };
 
         window.sharePoem = () => {
@@ -225,7 +211,6 @@
             }
         };
 
-        // パーティクル
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
