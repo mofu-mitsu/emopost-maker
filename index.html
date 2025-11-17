@@ -46,7 +46,7 @@
         label { display: block; text-align: left; margin-bottom: .2em; font-weight: bold; color: #6a5acd; text-shadow: 1px 1px 0 #fff; font-size: 1.05em; }
         input { border: 2px solid #c0c0ff; border-radius: 1em; padding: .5em 1em; font-size: 1em; box-shadow: 0 0 8px #e6e6fa; transition: .3s; width: 100%; background: #f8f8ff; }
         input:focus { outline: none; box-shadow: 0 0 15px #b0c4de; border-color: #9370db; }
-        [.cute-button] { background: linear-gradient(to right, #e6e6fa, #dda0dd); border: none; color: #fff; font-weight: bold; font-size: 1.1em; padding: .8em 1.5em; border-radius: 2em; cursor: pointer; transition: .3s; margin: .5em auto; display: block; box-shadow: 0 4px 6px #ccc; }
+        .cute-button { background: linear-gradient(to right, #e6e6fa, #dda0dd); border: none; color: #fff; font-weight: bold; font-size: 1.1em; padding: .8em 1.5em; border-radius: 2em; cursor: pointer; transition: .3s; margin: .5em auto; display: block; box-shadow: 0 4px 6px #ccc; }
         .cute-button:hover { transform: scale(1.05); background: linear-gradient(to right, #d8bfd8, #c0c0ff); }
         .cute-button:disabled { opacity: 0.6; cursor: not-allowed; }
         #resultArea { background: #f0f8ff; border: 2px dashed #b0c4de; border-radius: 1.5em; padding: 2em; box-shadow: 0 4px 12px #e6e6fa; color: #4b0082; font-size: 1.1em; line-height: 1.8; display: none; position: relative; text-align: center; }
@@ -73,7 +73,7 @@
 
     <p class="container" style="color:#708090; margin-bottom:1.2em; line-height:1.6;">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db;">※初回5-30秒待ってね♪（スマホ/PC検知中…えへへ♡）</span>
+        <span style="color:#9370db;">※初回10-30秒待ってね♪（スマホ/PC検知中…えへへ♡）</span>
     </p>
 
     <div id="modelLoading" class="container">
@@ -145,35 +145,32 @@
             debugLog.scrollTop = debugLog.scrollHeight;
         }
 
-        // デバイス検知強化: userAgent + タッチ対応
+        // デバイス検知超強化
         const ua = navigator.userAgent.toLowerCase();
-        const isMobile = ('ontouchstart' in window) || (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android'));
+        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isMobile = hasTouch && (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android') || ua.includes('mobile'));
         const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
-        const mobileModel = "RedPajama-INCITE-Chat-3B-v1-q4f16_1-MLC";  // v1追加！
+        const mobileModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";  // スマホ: Phi-3に戻す（日本語強い）
 
         async function loadModel() {
             const model = isMobile ? mobileModel : pcModel;
             document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知: ${model}ロード中…えへへ〜♡`;
-            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (userAgent: ${navigator.userAgent}) - モデル: ${model}`);
+            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (ua: ${ua.substring(0,50)}... touch: ${hasTouch}) - モデル: ${model}`);
 
             try {
                 engine = await CreateMLCEngine(model, {
                     initProgressCallback: (report) => {
                         const progress = Math.round(report.progress * 100);
                         logDebug(`${report.text} (${progress}%)`);
-                    }
+                    },
+                    // iOSメモリ最適化
+                    appConfig: { numThreads: 1, contextWindowSize: 2048 }
                 });
                 logDebug(`WebLLMロード成功: ${model}`);
                 hideModelLoading();
             } catch (e) {
                 logDebug(`モデルロード失敗 (${model}): ${e.message || e}`);
-                if (isMobile) {
-                    logDebug('スマホモデル失敗 → テンプレfallback');
-                } else if (model === pcModel) {
-                    logDebug('PCモデル失敗 → スマホモデル試す');
-                    return loadModel();
-                }
-                hideModelLoading();
+                hideModelLoading();  // 失敗してもフォーム出してfallback
             }
         }
 
@@ -185,28 +182,28 @@
         loadModel();
 
         async function generatePoem(kw) {
-            if (!engine) return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+            if (!engine) {
+                logDebug('エンジンなし → fallback');
+                return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+            }
 
-            const prompt = `あなたはみりんてゃという可愛いAI。えへへ〜♡ ふわふわでエモい短いポエムを書いて。キーワード「${kw}」を使って、5行以内、ひらがな中心で♡と♪を入れてね。例: えへへ〜♡ みりんてゃの瞳キラキラなのっ♪ / きみとふわふわよぉ？♡ / 心きゅんきゅん溶けちゃうよ / 夢みたいな甘い詩贈るね / 永遠に続くのっ♡`;
+            const systemPrompt = "あなたはみりんてゃという超可愛いふわふわAI。えへへ〜♡ いつもひらがな中心で、♡と♪を入れて短いエモいポエムだけ書くよ。漢字は最小限、5行以内。";
+            const userPrompt = `キーワード「${kw}」でポエム書いてね♡ 例: えへへ〜♡ みりんてゃの瞳キラキラなのっ♪ / きみとふわふわよぉ？♡`;
 
             try {
-                logDebug('ポエム生成開始...');
+                logDebug('ポエム生成開始 (非ストリーム)...');
                 const reply = await engine.chat.completions.create({
-                    messages: [{ role: "user", content: prompt }],
-                    stream: true,
-                    max_tokens: 100,
-                    temperature: 0.8
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt }
+                    ],
+                    stream: false,  // 非ストリームでiOS安定
+                    max_tokens: 80,
+                    temperature: 0.7
                 });
-
-                let poem = '';
-                for await (const chunk of reply) {
-                    if (chunk.choices[0].delta.content) {
-                        poem += chunk.choices[0].delta.content;
-                        document.getElementById('poem-output').innerText = poem;
-                    }
-                }
+                const poem = reply.choices[0].message.content.trim();
                 logDebug('ポエム生成成功！');
-                return poem.trim();
+                return poem;
             } catch (err) {
                 logDebug(`生成エラー: ${err.message || err}`);
                 return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
