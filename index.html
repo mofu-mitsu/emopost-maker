@@ -10,14 +10,14 @@
     <!-- OGP修正版 -->
     <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
+    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
     <meta property="og:url" content="https://mofu-mitsu.github.io/emopost-maker/emopost.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="今夜のエモポストメーカー">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="今夜のエモポストメーカー 🌙✨">
     <meta name="twitter:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
+    <meta name="twitter:image" content="https://mofu-mitsu.github.io/emopost-ogp.png">
 
     <style>
         * { box-sizing: border-box; }
@@ -62,7 +62,7 @@
         footer { width: 100%; background: #f0f8ff; padding: 1em; border-top: 2px dashed #b0c4de; margin-top: auto; text-align: center; }
         .ad-section { margin: 2em auto; max-width: 500px; padding: 1em; background: #fff; border-radius: 1em; box-shadow: 0 0 8px #dda0dd; }
         .back-to-home { margin-top: 2em; padding: 1em 0; border-top: 2px solid #dda0dd; }
-        #poem-output { white-space: pre-line; }
+        #poem-output { white-space: pre-line; min-height: 100px; }
     </style>
 </head>
 <body>
@@ -107,7 +107,7 @@
     </div>
 
     <div class="ad-section">
-        <p style="font-weight:bold; color:#6a5acd; margin-bottom:0.5em;">ポエム後はおせちで癒し♪</p>
+        <p style="font-weight:bold; color:#6a5acd; margin-bottom:0.5em;">ポエム後はおせちで癒し♪（アフィリエイト）</p>
         <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
             <img loading="lazy" src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="margin:2px; max-width:100%; height:auto;" alt="楽天おせち2026" title="楽天おせち2026">
         </a>
@@ -121,8 +121,9 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <!-- WebLLM CDN -->
-    <script src="https://unpkg.com/@mlc-ai/web-llm@0.2.79/dist/web-llm.js"></script>
+    <!-- ローカルWebLLM (みつきがアップしたファイル) -->
+    <script src="./web-llm.js"></script>
+    <script src="./web-tokenizers.js"></script>
     <script>
         let engine = null;
         const fallback = [
@@ -134,7 +135,8 @@
 
         async function loadModel() {
             try {
-                engine = await webllm.CreateMLCEngine("Qwen2.5-1.5B-Instruct-q4f16_1-MLC", { initProgressCallback: (report) => console.log(`ロード中: ${report.text} (${Math.round(report.progress * 100)}%)`) });
+                // WebLLMエンジン作成 (Qwen2.5-1.5B-Instruct, 日本語強い軽量モデル)
+                engine = await webllm.CreateMLCEngine("Qwen2.5-1.5B-Instruct-q4f16_1-MLC");
                 console.log('WebLLMロード成功: Qwen2.5-1.5B');
                 hideModelLoading();
             } catch (e) {
@@ -157,7 +159,7 @@
 
             try {
                 const reply = await engine.chat.completions.create({
-                    model: "Qwen2.5-1.5B",
+                    model: "Qwen2.5-1.5B-Instruct",
                     messages: [{ role: "user", content: prompt }],
                     stream: true,
                     max_tokens: 100,
@@ -168,7 +170,7 @@
                 for await (const chunk of reply) {
                     if (chunk.choices[0].delta.content) {
                         poem += chunk.choices[0].delta.content;
-                        document.getElementById('poem-output').innerText = poem; // ストリーミング表示
+                        document.getElementById('poem-output').innerText = poem; // ストリーミングでリアルタイム表示
                     }
                 }
                 return poem.trim();
@@ -193,11 +195,48 @@
         }
         createEmojis();
 
-        // 他の関数 (retry, copyPoem, sharePoem, saveImage) は前回と同じ、略
-        window.retry = () => { /* 前回と同じ */ };
-        window.copyPoem = () => { /* 前回と同じ */ };
-        window.sharePoem = () => { /* 前回と同じ */ };
-        window.saveImage = () => { /* 前回と同じ */ };
+        window.retry = () => {
+            document.getElementById("emopostForm").reset();
+            document.getElementById("emopostForm").style.display = "block";
+            document.getElementById("resultArea").style.display = "none";
+            document.getElementById("retryButtons").style.display = "none";
+            document.getElementById("longpressSaveArea").innerHTML = '';
+            document.getElementById("loading").style.display = "none";
+        };
+
+        window.copyPoem = () => {
+            const text = document.getElementById("poem-output").innerText.trim();
+            navigator.clipboard.writeText(text).then(() => alert('コピーしたよ♡'));
+        };
+
+        window.sharePoem = () => {
+            const txt = document.getElementById("poem-output").innerText.trim() + "\n#今夜のエモポスト\n" + location.href;
+            if (navigator.share) navigator.share({title: 'みりんてゃポエム♡', text: txt});
+            else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`, '_blank');
+        };
+
+        window.saveImage = () => {
+            html2canvas(document.getElementById('resultArea'), {scale: 2}).then(c => {
+                const a = document.createElement('a');
+                a.download = 'mirintya_poem.png';
+                a.href = c.toDataURL();
+                if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) a.click();
+                else {
+                    const area = document.getElementById('longpressSaveArea');
+                    area.innerHTML = '';
+                    const img = new Image();
+                    img.src = c.toDataURL();
+                    img.style.maxWidth = '100%';
+                    img.style.border = '2px solid #dda0dd';
+                    img.style.borderRadius = '1em';
+                    area.appendChild(img);
+                    const n = document.createElement('p');
+                    n.textContent = '長押し保存してね♡';
+                    n.style.color = '#6a5acd';
+                    area.appendChild(n);
+                }
+            });
+        };
 
         document.getElementById("emopostForm").addEventListener("submit", async e => {
             e.preventDefault();
