@@ -72,7 +72,7 @@
         <span class="copy-icon" onclick="copyPoem()">📋</span>
         <h2>🌙みりんてゃの夢ポエム♡</h2>
         <p id="poem-output"></p>
-        <p class="save-notice">スマホの方は長押しで画像保存できるよ♡</p>
+        <p class="save-notice">スマホの方はここ長押しで画像保存できるよ♡</p>
     </div>
 
     <div id="retryButtons" class="container" style="display:none">
@@ -159,17 +159,55 @@
         document.getElementById('resultArea').addEventListener('touchend', () => clearTimeout(longPressTimer));
         document.getElementById('resultArea').addEventListener('touchmove', () => clearTimeout(longPressTimer));
 
-        window.saveImage = () => html2canvas(document.getElementById('resultArea'), {scale:2, useCORS: true}).then(canvas => {
-            canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'mirintya_poem.png';
-                a.click();
-                URL.revokeObjectURL(url);
-            });
+        window.saveImage = async () => {
+            try {
+                const canvas = await html2canvas(document.getElementById('resultArea'), {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: null
+                });
+    
+                canvas.toBlob(blob => {
+                    // PC・スマホ共通でダウンロード
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'mirintya_poem.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            } catch (err) {
+                alert('保存できなかったよ…ごめんね😢');
+            }
+        };
+    
+        // スマホ長押しで保存（800ms長押しで発火）
+        let longPressTimer;
+        const resultArea = document.getElementById('resultArea');
+        resultArea.addEventListener('touchstart', e => {
+            e.preventDefault(); // スクロール防止
+            longPressTimer = setTimeout(() => {
+                saveImage();
+                alert('長押しで保存したよ♡');
+            }, 800);
         });
-
+        resultArea.addEventListener('touchend', () => clearTimeout(longPressTimer));
+        resultArea.addEventListener('touchmove', () => clearTimeout(longPressTimer));
+    
+        // PCでも長押し対応（おまけ）
+        resultArea.addEventListener('mousedown', () => {
+            longPressTimer = setTimeout(() => saveImage(), 800);
+        });
+        resultArea.addEventListener('mouseup', () => clearTimeout(longPressTimer));
+        resultArea.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
+    </script>
+        window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(()=>alert('コピーしたよ♡'));
+        window.sharePoem = () => {
+            const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
+            navigator.share ? navigator.share({title:'みりんてゃポエム♡',text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
+        };
         window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(()=>alert('コピーしたよ♡'));
         window.sharePoem = () => {
             const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
