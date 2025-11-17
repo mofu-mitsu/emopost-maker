@@ -124,8 +124,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <!-- キャッシュ無効でiOSループ回避 -->
-    <script type="module" src="./web-tokenizers.js?cache=20251117"></script>
-    <script type="module" src="./web-llm.js?cache=20251117"></script>
+    <script type="module" src="./web-tokenizers.js?v=20251117"></script>
+    <script type="module" src="./web-llm.js?v=20251117"></script>
     <script type="module">
         import { CreateMLCEngine } from "./web-llm.js";
 
@@ -146,21 +146,25 @@
             debugLog.scrollTop = debugLog.scrollHeight;
         }
 
-        // デバイス検知: エミュオフ前提、画面幅 + userAgentで厳密
+        // デバイス検知: エミュオフ前提、画面幅 + userAgent + タッチで厳密
         const ua = navigator.userAgent.toLowerCase();
         const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         const screenWidth = window.innerWidth;
-        const isMobile = hasTouch && screenWidth < 768 && (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android') || ua.includes('mobile'));
+        const isEmulator = ua.includes('nexus') || ua.includes('emulator') || ua.includes('chromebook');  // エミュ除外
+        const isMobile = hasTouch && screenWidth < 768 && !isEmulator && (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod') || ua.includes('android') || ua.includes('mobile'));
         const pcModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
         const mobileModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
 
         async function loadModel() {
             const model = isMobile ? mobileModel : pcModel;
             document.getElementById('loadingText').textContent = `${isMobile ? 'スマホ' : 'PC'}検知: ${model}ロード中…えへへ〜♡`;
-            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (ua: ${ua.substring(0,50)}... touch: ${hasTouch}, width: ${screenWidth}) - モデル: ${model}`);
+            logDebug(`${isMobile ? 'スマホ' : 'PC'}検知 (ua: ${ua.substring(0,50)}... touch: ${hasTouch}, width: ${screenWidth}, emulator: ${isEmulator}) - モデル: ${model}`);
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);  // 30秒タイムアウト
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                logDebug('30秒タイムアウト → fallback');
+            }, 30000);
 
             try {
                 engine = await CreateMLCEngine(model, {
@@ -168,7 +172,8 @@
                         const progress = Math.round(report.progress * 100);
                         logDebug(`${report.text} (${progress}%)`);
                     },
-                    signal: controller.signal
+                    signal: controller.signal,
+                    appConfig: { numThreads: isMobile ? 1 : 4, contextWindowSize: 2048 }
                 });
                 clearTimeout(timeoutId);
                 logDebug(`WebLLMロード成功: ${model}`);
@@ -176,7 +181,7 @@
             } catch (e) {
                 clearTimeout(timeoutId);
                 logDebug(`モデルロード失敗 (${model}): ${e.message || e}`);
-                hideModelLoading();  // fallback
+                hideModelLoading();
             }
         }
 
