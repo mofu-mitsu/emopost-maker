@@ -10,6 +10,7 @@
     <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
     <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
     <meta property="og:url" content="https://emopost-maker.pages.dev/">
+    <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <style>
         *{box-sizing:border-box}
@@ -36,6 +37,7 @@
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
         .progress{font-size:1.4em;color:#9370db;font-weight:bold;margin:0.8em 0}
         .save-notice{color:#9370db;font-size:0.9em;margin-top:0.5em}
+        #buttonRow{display:flex;justify-content:center;gap:1em;flex-wrap:wrap;margin-top:1em}
         @media(max-width:600px){h1{font-size:1.8em}.container,form,#resultArea,#loading,#modelLoading{padding:1em;width:90%}.cute-button{font-size:.95em;padding:.6em 1em}}
         footer{width:100%;background:#f0f8ff;padding:1em;border-top:2px dashed #b0c4de;margin-top:auto;text-align:center}
         .ad-section{margin:2em auto;max-width:500px;padding:1em;background:#fff;border-radius:1em;box-shadow:0 0 8px #dda0dd}
@@ -74,12 +76,12 @@
         <p class="save-notice">スマホの方はここ長押しで画像保存できるよ♡</p>
     </div>
 
+    <!-- ここをformの外に出してtype="button"に変更！これで絶対リロードしない！！ -->
     <div id="retryButtons" class="container" style="display:none">
-        <!-- ここを「リセット」方式に変更！勝手にリロードしない！ -->
-        <button class="cute-button" onclick="resetApp()">もう一度！♡</button>
+        <button type="button" class="cute-button" onclick="resetApp()">もう一度！♡</button>
         <div id="buttonRow">
-            <button class="cute-button" onclick="saveImage()">画像保存</button>
-            <button class="cute-button" onclick="sharePoem()">共有</button>
+            <button type="button" class="cute-button" onclick="saveImage()">画像保存</button>
+            <button type="button" class="cute-button" onclick="sharePoem()">共有</button>
         </div>
     </div>
 
@@ -123,7 +125,6 @@
         }
         init();
 
-        // もう一度！ボタン → ページリロードじゃなくてリセット！
         window.resetApp = () => {
             document.getElementById('resultArea').style.display = 'none';
             document.getElementById('retryButtons').style.display = 'none';
@@ -161,7 +162,6 @@
             document.getElementById('retryButtons').style.display = 'block';
         };
 
-        // 画像保存（ボタンも長押しも完璧）
         window.saveImage = async () => {
             try {
                 const canvas = await html2canvas(document.getElementById('resultArea'), {scale:2, useCORS:true, backgroundColor:null});
@@ -176,11 +176,10 @@
             } catch (err) { alert('保存できなかったよ…😢'); }
         };
 
-        // 長押し保存（タッチ操作を邪魔しないよう調整）
         let longPressTimer;
         const resultArea = document.getElementById('resultArea');
         const startLongPress = (e) => {
-            if (e.touches && e.touches.length > 1) return; // マルチタッチ無視
+            if (e.touches && e.touches.length > 1) return;
             longPressTimer = setTimeout(saveImage, 800);
         };
         const cancelLongPress = () => clearTimeout(longPressTimer);
@@ -193,12 +192,18 @@
         resultArea.addEventListener('mouseleave', cancelLongPress);
 
         window.copyPoem = () => navigator.clipboard.writeText(document.getElementById('poem-output').innerText).then(() => alert('コピーしたよ♡'));
-        window.sharePoem = () => {
+
+        window.sharePoem = (e) => {
+            // ここでe.preventDefault()追加！これで絶対リロードしない！
+            if (e) e.preventDefault();
             const txt = document.getElementById('poem-output').innerText + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            navigator.share ? navigator.share({title:'みりんてゃポエム♡', text:txt}) : open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
+            if (navigator.share) {
+                navigator.share({title: 'みりんてゃポエム♡', text: txt});
+            } else {
+                open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`);
+            }
         };
 
-        // パーティクル
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement('div');
