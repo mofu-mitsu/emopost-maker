@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今夜のエモポストメーカー 🌙✨</title>
     <link rel="icon" type="image/x-icon" href="https://mofu-mitsu.github.io/emopost-maker/favicon.ico">
-    <meta name="description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
-    <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
-    <meta property="og:url" content="https://emopost-maker.pages.dev/">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
         html,body{
@@ -64,7 +57,6 @@
         <p style="font-size:1.4em;color:#9370db;font-weight:bold" id="progressText">0%</p>
     </div>
 
-    <!-- ★★★ ここが最大の変更点！<form>を完全廃止！ ★★★ -->
     <div id="emopostForm" class="container input-area" style="display:none">
         <input type="text" id="keyword" placeholder="例: みりんてゃ、幸せ、寂しい">
         <button id="generateBtn" type="button" class="cute-button">生成！♡</button>
@@ -110,9 +102,7 @@
         let engine = null;
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
 
-        // フォーム廃止 → クリックイベントに完全移行
-        const generateBtn = document.getElementById("generateBtn");
-
+        // エラー抑止
         window.addEventListener('unhandledrejection', e => e.preventDefault());
         window.addEventListener('error', e => e.preventDefault());
 
@@ -126,6 +116,7 @@
                 });
                 document.getElementById("progressText").textContent = "みりんてゃ準備完了！えへへ〜♡";
             } catch (e) {
+                console.error(e);
                 document.getElementById("progressText").textContent = "オフラインでもふわふわ♡";
             }
             document.getElementById("modelLoading").style.display = "none";
@@ -152,11 +143,9 @@
                     });
                     poem = reply.choices[0].message.content.trim();
 
-                    // ★メモリ解放（超重要！）★
-                    if (engine.interruptSignal) engine.interruptSignal.abort();
-                    if (engine.unload) await engine.unload(); // モデル一時解放
+                    // メモリ解放（クラッシュ防止）
+                    if (engine.unload) await engine.unload();
                     engine = null;
-                    await new Promise(r => setTimeout(r, 500)); // GC待ち
 
                 } catch (err) {
                     poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
@@ -173,7 +162,7 @@
             }, 150);
         }
 
-        generateBtn.addEventListener("click", generatePoem);
+        document.getElementById("generateBtn").addEventListener("click", generatePoem);
 
         window.retryGenerate = () => {
             document.getElementById("resultArea").style.display = "none";
@@ -181,103 +170,36 @@
             document.getElementById("keyword").value = "";
             document.getElementById("emopostForm").style.display = "block";
             document.getElementById("keyword").focus();
-            // 再生成時はモデル再ロード（メモリ節約のため）
-            initModel();
+            initModel(); // 再ロード
         };
 
-        async function generatePoem() {
-            const kw = document.getElementById("keyword").value.trim() || "みりんてゃ";
-            form.style.display = "none";
-            document.getElementById("loading").style.display = "block";
-
-            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡\n夢みたいな甘い世界♡";
-
-            if (engine) {
-                try {
-                    const reply = await engine.chat.completions.create({
-                        messages: [
-                            { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
-                            { role: "user", content: kw }
-                        ],
-                        temperature: 0.9,
-                        max_tokens: 120
-                    });
-                    poem = reply.choices[0].message.content.trim();
-                } catch (err) {
-                    poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
-                }
-            }
-
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("resultArea").style.display = "block";
-            document.getElementById("poem-output").textContent = poem;
-            document.getElementById("retryButtons").style.display = "flex";
-
-            // 結果表示後に自動で結果エリアまでスクロール（保険）
-            setTimeout(() => {
-                document.getElementById("resultArea").scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
-                });
-            }, 150);
-        }
-
-        form.onsubmit = e => { e.preventDefault(); generatePoem(); };
-
-        window.retryGenerate = () => {
-            document.getElementById("resultArea").style.display = "none";
-            document.getElementById("retryButtons").style.display = "none";
-            document.getElementById("keyword").value = "";
-            document.getElementById("keyword").focus();
-            form.style.display = "block";
-        };
-
+        // 画像保存・共有・コピー（省略なしで全部残してる）
         window.saveImage = async () => {
             try {
-                const canvas = await html2canvas(document.getElementById("resultArea"), {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: null
-                });
-                canvas.toBlob(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "mirintya_poem.png";
-                    a.click();
-                    URL.revokeObjectURL(url);
-                });
-            } catch (e) {
-                alert("画像保存できない時は長押ししてね♡");
-            }
+                const canvas = await html2canvas(document.getElementById("resultArea"), {scale:2, useCORS:true, allowTaint:true, backgroundColor:null});
+                canvas.toBlob(b => {const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download="mirintya_poem.png";a.click();URL.revokeObjectURL(u);});
+            } catch { alert("画像保存できない時は長押ししてね♡"); }
         };
 
         window.sharePoem = () => {
-            const text = document.getElementById("poem-output").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            if (navigator.share) {
-                navigator.share({title: "みりんてゃポエム♡", text}).catch(() => {});
-            } else {
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
-            }
+            const t = document.getElementById("poem-output").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
+            navigator.share ? navigator.share({title:"みりんてゃポエム♡", text:t}) : window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}`);
         };
 
         window.copyPoem = () => {
-            navigator.clipboard.writeText(document.getElementById("poem-output").textContent)
-                .then(() => alert("コピーしたよ♡"))
-                .catch(() => alert("コピーできない時は長押ししてね♡"));
+            navigator.clipboard.writeText(document.getElementById("poem-output").textContent).then(()=>alert("コピーしたよ♡")).catch(()=>alert("長押ししてね♡"));
         };
 
         // パーティクル
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
-            const el = document.createElement("div");
-            el.className = "emoji";
-            el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-            el.style.left = Math.random()*100 + "%";
-            el.style.animationDuration = (Math.random()*6 + 10) + "s";
-            document.getElementById("particles").appendChild(el);
-            setTimeout(() => el.remove(), 16000);
+            const e = document.createElement("div");
+            e.className = "emoji";
+            e.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+            e.style.left = Math.random()*100 + "%";
+            e.style.animationDuration = (Math.random()*6 + 10) + "s";
+            document.getElementById("particles").appendChild(e);
+            setTimeout(() => e.remove(), 16000);
         }, 900);
     </script>
 </body>
