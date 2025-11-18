@@ -12,7 +12,7 @@
         .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;font-size:1.5em}
         .emoji{position:absolute;animation:float 10s linear infinite;opacity:0.7}
         @keyframes float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:0.7}90%{opacity:0.7}100%{transform:translateY(-20vh) rotate(360deg);opacity:0}}
-        h1{font-family:"Kirang Haerang",cursive,sans-serif;font-size:2.5em;background:#fff;padding:.5em 1em;border:4px dotted #c0c0ff;border-radius:1.5em;box-shadow:0 4px 10px #e6e6fa;margin:1em auto}
+        h1{font-family:"Kirang Haerang",cursive,sans-serif;font-size:2.5em;background:#fff;padding:.5em 1em;border:4px dotted #c0c0ff;border-radius:1.5em;box-shadow:0 учу4px 10px #e6e6fa;margin:1em auto}
         .gradient-text{background:linear-gradient(45deg,#87ceeb,#dda0dd,#ffb6c1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:2px 2px 4px #f0e6ff}
         .container{max-width:500px;width:100%;margin:1em auto}
         form{background:#ffffffcc;border-radius:1em;padding:2em;box-shadow:0 0 10px #b0c4de}
@@ -44,7 +44,7 @@
     </div>
 
     <form id="emopostForm" class="container" style="display:none">
-        <input type="text" id="keyword" placeholder="例: 幸せ、寂しい" required>
+        <input type="text" id="keyword" placeholder="例: みりんてゃ、幸せ、寂しい" required>
         <button type="submit" class="cute-button">生成！♡</button>
     </form>
 
@@ -60,10 +60,8 @@
         <p style="color:#9370db;font-size:0.9em;margin-top:1em">スマホは長押しで保存できるよ♡</p>
     </div>
 
-    <!-- ここが最重要修正！！ -->
     <div class="button-group" id="retryButtons" style="display:none">
         <button type="button" class="cute-button" onclick="retryGenerate()">もう一度！♡</button>
-        <!-- 絶対にtype="button"明記！！ -->
         <button type="button" class="cute-button" onclick="saveImage()">画像保存</button>
         <button type="button" class="cute-button" onclick="sharePoem()">共有</button>
     </div>
@@ -149,15 +147,17 @@
             form.style.display = "block";
         };
 
-        // 画像保存 → ポップアップブロック回避でダウンロード方式に変更！
+        // ← ここを修正！！！引数 blob をちゃんと受け取る！！！
         window.saveImage = () => {
             html2canvas(document.getElementById("resultArea"), {scale: 2}).then(canvas => {
-                const blob = canvas.toBlob(blob => {
+                canvas.toBlob(blob => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
                     a.download = "mirintya_poem.png";
+                    document.body.appendChild(a);
                     a.click();
+                    document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 });
             });
