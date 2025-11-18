@@ -85,29 +85,42 @@
         <a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a>
     </footer>
 
-    <!-- ★★★ ここを絶対URLに変更 ★★★ -->
+    <!-- ローカルのweb-tokenizers.jsとweb-llm.jsは絶対に必要 → 相対パスで確実に読み込む -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/lib/web-llm.min.js"></script>
+    <script type="module" src="./web-tokenizers.js"></script>
+    <script type="module" src="./web-llm.js"></script>
 
     <script type="module">
-        import { CreateMLCEngine } from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/lib/web-llm.min.js";
+        import { CreateMLCEngine } from "./web-llm.js";
 
         let engine = null;
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
         const form = document.getElementById("emopostForm");
 
-        // エラー完全キャッチ
-        window.addEventListener('unhandledrejection', e => { e.preventDefault(); console.warn(e.reason); });
-        window.addEventListener('error', e => { e.preventDefault(); console.warn(e.error); });
+        // ★★★ スマホリロード完全防止 ★★★
+        window.addEventListener('unhandledrejection', e => {
+            console.warn('【リロード防止】', e.reason);
+            e.preventDefault();
+        });
+        window.addEventListener('error', e => {
+            console.warn('【エラー防止】', e.error);
+            e.preventDefault();
+        });
 
         async function initModel() {
             try {
                 engine = await CreateMLCEngine(model, {
                     initProgressCallback: info => {
-                        document.getElementById("progressText").textContent = Math.round(info.progress * 100) + "%"
+                        document.getElementById("progressText").textContent = Math.round(info.progress * 100) + "%";
+                    },
+                    // スマホはGPUが不安定 → CPU強制で安定化
+                    appConfig: { 
+                        gpu: { enabled: false }
+                    }
                 });
                 document.getElementById("progressText").textContent = "みりんてゃ準備完了！えへへ〜♡";
             } catch (e) {
+                console.error("モデルロード失敗:", e);
                 document.getElementById("progressText").textContent = "オフラインでもふわふわ♡";
             }
             document.getElementById("modelLoading").style.display = "none";
@@ -120,19 +133,24 @@
             form.style.display = "none";
             document.getElementById("loading").style.display = "block";
 
-            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心がきゅんってなっちゃうよ♡";
+            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡\n夢みたいな甘い世界\n永遠に続くのっ♡";
 
-            try {
-                const reply = await engine.chat.completions.create({
-                    messages: [
-                        { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
-                        { role: "user", content: kw }
-                    ],
-                    temperature: 0.9,
-                    max_tokens: 120
-                });
-                poem = reply.choices[0].message.content.trim();
-            } catch (err) {}
+            if (engine) {
+                try {
+                    const reply = await engine.chat.completions.create({
+                        messages: [
+                            { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
+                            { role: "user", content: kw }
+                        ],
+                        temperature: 0.9,
+                        max_tokens: 120
+                    });
+                    poem = reply.choices[0].message.content.trim();
+                } catch (err) {
+                    console.error("生成エラー（でもリロードさせない）:", err);
+                    poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
+                }
+            }
 
             document.getElementById("loading").style.display = "none";
             document.getElementById("resultArea").style.display = "block";
@@ -152,13 +170,21 @@
 
         window.saveImage = async () => {
             try {
-                const canvas = await html2canvas(document.getElementById("resultArea"), {scale: 2, useCORS: true});
+                const canvas = await html2canvas(document.getElementById("resultArea"), {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null
+                });
                 canvas.toBlob(blob => {
+                    if (!blob) throw new Error("Blob null");
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
                     a.download = "mirintya_poem.png";
+                    document.body.appendChild(a);
                     a.click();
+                    document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 });
             } catch (e) {
@@ -168,16 +194,20 @@
 
         window.sharePoem = () => {
             const text = document.getElementById("poem-output").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            if (navigator.share) navigator.share({title: "みりんてゃポエム♡", text});
-            else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
+            if (navigator.share) {
+                navigator.share({title: "みりんてゃポエム♡", text}).catch(() => {});
+            } else {
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+            }
         };
 
         window.copyPoem = () => {
             navigator.clipboard.writeText(document.getElementById("poem-output").textContent)
-                .then(() => alert("コピーしたよ♡"));
+                .then(() => alert("コピーしたよ♡"))
+                .catch(() => alert("コピーできない時は長押ししてね♡"));
         };
 
-        // パーティクルはそのまま
+        // パーティクル
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const el = document.createElement("div");
