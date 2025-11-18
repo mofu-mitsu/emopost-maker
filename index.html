@@ -11,93 +11,70 @@
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <style>
-        *{box-sizing:border-box;margin:0;padding:0}
+        *{margin:0;padding:0;box-sizing:border-box}
         html,body{
-            overscroll-behavior-y:none !important; /* Pull-to-Refresh完全封印 */
-            touch-action:pan-y; /* 縦スクロールだけ許可 */
-            -webkit-overflow-scrolling:touch; /* スムーズスクロール */
-            height:100%;min-height:100vh;
+            height:100vh; min-height:100vh; overflow:hidden;
+            overscroll-behavior-y:none !important;
+            touch-action:pan-y;
+            -webkit-overflow-scrolling:touch;
         }
         body{
             font-family:"Hiragino Kaku Gothic ProN",sans-serif;
-            background:#f5e6ff; /* スマホシンプル背景でメモリ節約 */
-            text-align:center;padding:2em;color:#555;
-            display:flex;flex-direction:column;align-items:center;
-            overflow-x:hidden;padding-bottom:30vh; /* 端誤爆防止 */
+            background:#f5e6ff;
+            color:#555; text-align:center; padding:2em 1em;
+            display:flex; flex-direction:column; align-items:center;
         }
-        /* PCだけキラキラ背景 */
-        @media (min-width:768px){
-            body{background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:starryBG 25s ease infinite}
+        @media(min-width:768px){
+            body{background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:g 25s ease infinite}
         }
-        @keyframes starryBG{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
-        .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;font-size:1.5em}
-        .emoji{position:absolute;animation:float 10s linear infinite;opacity:0.7}
-        @keyframes float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:0.7}90%{opacity:0.7}100%{transform:translateY(-20vh) rotate(360deg);opacity:0}}
-        h1{font-family:"Kirang Haerang",cursive,sans-serif;font-size:2.5em;background:#fff;padding:.5em 1em;border:4px dotted #c0c0ff;border-radius:1.5em;box-shadow:0 4px 10px #e6e6fa;margin:1em auto}
-        .gradient-text{background:linear-gradient(45deg,#87ceeb,#dda0dd,#ffb6c1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:2px 2px 4px #f0e6ff}
-        .container{max-width:500px;width:100%;margin:1em auto}
-        .input-area{background:#ffffffcc;border-radius:1em;padding:2em;box-shadow:0 0 10px #b0c4de}
-        input{border:2px solid #c0c0ff;border-radius:1em;padding:.8em 1em;font-size:1em;width:100%;background:#f8f8ff}
-        input:focus{outline:none;border-color:#9370db;box-shadow:0 0 15px #dda0dd}
-        .cute-button{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;font-size:1.1em;padding:.9em 2em;border-radius:2em;cursor:pointer;transition:.3s;box-shadow:0 4px 10px rgba(0,0,0,0.1);margin:0.5em}
-        .cute-button:hover{transform:scale(1.05)}
-        #resultArea{background:#f0f8ff;border:2px dashed #b0c4de;border-radius:1.5em;padding:2em;margin:1em auto;box-shadow:0 4px 12px #e6e6fa;position:relative;display:none}
-        .copy-icon{position:absolute;top:10px;right:10px;font-size:1.5em;cursor:pointer;background:rgba(255,255,255,0.8);padding:5px;border-radius:50%}
-        .spinner{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:2em auto}
-        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-        .button-group{display:flex;gap:1em;justify-content:center;flex-wrap:wrap;margin:2em 0}
-        footer{margin-top:auto;padding:2em 0;width:100%;background:#f0f8ff;border-top:2px dashed #dda0dd}
-        .ad-section{margin:2em auto;max-width:500px;background:#fff;padding:1em;border-radius:1em;box-shadow:0 0 8px #dda0dd}
+        @keyframes g{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1}
+        .e{position:absolute;animation:f 12s linear infinite;opacity:0.7;font-size:1.5em}
+        @keyframes f{0%{transform:translateY(100vh) rotate(0)}100%{transform:translateY(-100px) rotate(360deg)}}
+        h1{font-size:2.4em;background:#fff;padding:.6em 1.2em;border:4px dotted #c0c0ff;border-radius:2em;box-shadow:0 6px 15px #e6e6fa;margin-bottom:.5em}
+        .g{background:linear-gradient(45deg,#87ceeb,#dda0dd,#ffb6c1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .c{max-width:500px;width:100%;margin:1em auto}
+        .i{background:#fff;border-radius:1.5em;padding:2em;box-shadow:0 8px 20px #d8bfd8}
+        input{width:100%;padding:1em;font-size:1.1em;border:2px solid #dda0dd;border-radius:1em;background:#fff8ff}
+        input:focus{outline:none;border-color:#9370db;box-shadow:0 0 20px #dda0dd88}
+        .b{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;padding:1em 2em;border-radius:2em;cursor:pointer;font-size:1.1em;margin:1em 0;box-shadow:0 6px 15px #dda0dd55}
+        .b:hover{transform:translateY(-2px)}
+        #r{background:#f0f8ff;border:3px dashed #b0c4de;border-radius:2em;padding:2em;position:relative;display:none;box-shadow:0 8px 20px #e6e6fa}
+        .copy{position:absolute;top:10px;right:10px;font-size:1.8em;cursor:pointer;background:#fff;padding:8px;border-radius:50%;box-shadow:0 2px 8px #ccc}
+        .s{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:s 1s linear infinite;margin:2em auto}
+        @keyframes s{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+        .btns{display:flex;gap:1em;justify-content:center;flex-wrap:wrap;margin:2em 0}
+        footer{margin-top:auto;padding:2em;background:#f0f8ff;width:100%;border-top:3px dashed #dda0dd}
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
-    <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
-    <p class="container" style="color:#708090;line-height:1.6">
-        今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db">※初回10-30秒待ってね♪（完全にオフライン！）</span>
-    </p>
+    <div class="particles" id="p"></div>
+    <h1><span class="g">今夜のエモポストメーカー 🌙✨</span></h1>
+    <p class="c">今日の気分やキーワードを入れてね♡ 賢いみりんてゃがふわふわポエム作るよ〜！</p>
 
-    <div id="modelLoading" class="container">
-        <div class="spinner"></div>
-        <p>みりんてゃがモデル呼び出してる…えへへ〜♡</p>
-        <p style="font-size:1.4em;color:#9370db;font-weight:bold" id="progressText">0%</p>
+    <div id="load" class="c"><div class="s"></div><p>賢いみりんてゃ呼び出し中…えへへ〜♡</p><p id="prog">0%</p></div>
+
+    <div id="form" class="c i" style="display:none">
+        <input type="text" id="kw" placeholder="例：みりんてゃ、幸せ、夜空">
+        <button id="gen" class="b">生成！♡</button>
     </div>
 
-    <div id="emopostForm" class="container input-area" style="display:none">
-        <input type="text" id="keyword" placeholder="例: みりんてゃ、幸せ、寂しい">
-        <button id="generateBtn" type="button" class="cute-button">生成！♡</button>
-    </div>
+    <div id="ing" class="c" style="display:none"><div class="s"></div><p>みりんてゃが全力で紡いでる…♡</p></div>
 
-    <div id="loading" class="container" style="display:none">
-        <div class="spinner"></div>
-        <p>みりんてゃがふわふわ紡いでる…えへへ〜♡</p>
-    </div>
-
-    <div id="resultArea" class="container">
-        <span class="copy-icon" onclick="copyPoem()">📋</span>
+    <div id="r" class="c">
+        <span class="copy" onclick="copy()">📋</span>
         <h2>🌙みりんてゃの夢ポエム♡</h2>
-        <p id="poem-output" style="white-space:pre-line;font-size:1.2em;line-height:2;"></p>
-        <p style="color:#9370db;font-size:0.9em;margin-top:1em">スマホは長押しで保存できるよ♡</p>
+        <p id="poem" style="white-space:pre-line;font-size:1.3em;line-height:2;margin:1.5em 0"></p>
+        <p style="color:#9370db">スマホは長押しで保存もできるよ♡</p>
     </div>
 
-    <div class="button-group" id="retryButtons" style="display:none">
-        <button type="button" class="cute-button" onclick="retryGenerate()">もう一度！♡</button>
-        <button type="button" class="cute-button" onclick="saveImage()">画像保存</button>
-        <button type="button" class="cute-button" onclick="sharePoem()">共有</button>
+    <div class="btns" id="btns" style="display:none">
+        <button class="b" onclick="retry()">もう一度！♡</button>
+        <button class="b" onclick="save()">画像保存</button>
+        <button class="b" onclick="share()">共有</button>
     </div>
 
-    <div class="ad-section">
-        <p style="font-weight:bold;color:#6a5acd">ポエム後はおせちで癒し♪</p>
-        <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow">
-            <img loading="lazy" src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" style="max-width:100%;height:auto;border-radius:8px">
-        </a>
-        <p style="color:#6a5acd;font-weight:bold">🎍 楽天おせち2026 最大350円OFF！</p>
-    </div>
-
-    <footer>
-        <a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a>
-    </footer>
+    <footer><a href="https://mofu-mitsu.github.io/" style="color:#9370db;font-weight:bold">TOPへ戻る</a></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script type="module" src="./web-tokenizers.js"></script>
@@ -105,107 +82,88 @@
 
     <script type="module">
         import { CreateMLCEngine } from "./web-llm.js";
-
         let engine = null;
-        const model = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC"; /* 軽量モデルでスマホ安定 */
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // 賢いみりんてゃ完全復活！！
 
         // リロード完全防止
-        window.addEventListener('unhandledrejection', e => e.preventDefault());
-        window.addEventListener('error', e => e.preventDefault());
+        window.addEventListener('beforeunload', e => e.preventDefault());
+        window.addEventListener('unload', e => e.preventDefault());
 
-        async function initModel() {
+        async function init() {
             try {
                 engine = await CreateMLCEngine(model, {
-                    initProgressCallback: info => {
-                        document.getElementById("progressText").textContent = Math.round(info.progress * 100) + "%";
-                    },
-                    executionProviders: ["wasm"]  /* CPU強制 */
+                    initProgressCallback: i => document.getElementById("prog").textContent = Math.round(i.progress*100)+"%"
                 });
-                document.getElementById("progressText").textContent = "みりんてゃ準備完了！えへへ〜♡";
-            } catch (e) {
-                console.error(e);
-                document.getElementById("progressText").textContent = "オフラインでもふわふわ♡";
-            }
-            document.getElementById("modelLoading").style.display = "none";
-            document.getElementById("emopostForm").style.display = "block";
+                document.getElementById("prog").textContent = "賢いみりんてゃ準備完了！♡";
+            } catch(e) { console.error(e); }
+            document.getElementById("load").style.display = "none";
+            document.getElementById("form").style.display = "block";
         }
-        initModel();
+        init();
 
-        async function generatePoem() {
-            const kw = document.getElementById("keyword").value.trim() || "みりんてゃ";
-            document.getElementById("emopostForm").style.display = "none";
-            document.getElementById("loading").style.display = "block";
-            if (isMobile) document.getElementById("particles").style.display = "none"; /* メモリ節約 */
+        document.getElementById("gen").onclick = async () => {
+            const kw = document.getElementById("kw").value.trim() || "みりんてゃ";
+            document.getElementById("form").style.display = "none";
+            document.getElementById("ing").style.display = "block";
+            if(isMobile) document.getElementById("p").style.display = "none";
 
-            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡";
-
-            if (engine) {
-                try {
-                    const reply = await engine.chat.completions.create({
-                        messages: [
-                            { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
-                            { role: "user", content: kw }
-                        ],
-                        temperature: 0.9,
-                        max_tokens: 120
-                    });
-                    poem = reply.choices[0].message.content.trim();
-                } catch (err) {
-                    poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
-                }
+            let poem = "えへへ〜♡ きみとふわふわなのっ♪\nずっときゅんきゅんしちゃうよ♡";
+            if(engine){
+                const res = await engine.chat.completions.create({
+                    messages: [
+                        {role:"system",content:"あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！"},
+                        {role:"user",content:kw}
+                    ],
+                    temperature:0.85, max_tokens:150
+                });
+                poem = res.choices[0].message.content.trim();
             }
 
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("resultArea").style.display = "block";
-            document.getElementById("poem-output").textContent = poem;
-            document.getElementById("retryButtons").style.display = "flex";
-            if (isMobile) document.getElementById("particles").style.display = "block";
+            document.getElementById("ing").style.display = "none";
+            document.getElementById("r").style.display = "block";
+            document.getElementById("poem").textContent = poem;
+            document.getElementById("btns").style.display = "flex";
+            if(isMobile) document.getElementById("p").style.display = "block";
 
-            setTimeout(() => {
-                document.getElementById("resultArea").scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 150);
-        }
-
-        document.getElementById("generateBtn").addEventListener("click", generatePoem);
-
-        window.retryGenerate = () => {
-            document.getElementById("resultArea").style.display = "none";
-            document.getElementById("retryButtons").style.display = "none";
-            document.getElementById("keyword").value = "";
-            document.getElementById("emopostForm").style.display = "block";
-            document.getElementById("keyword").focus();
+            setTimeout(() => document.getElementById("r").scrollIntoView({behavior:"smooth"}), 200);
         };
 
-        window.saveImage = async () => {
+        window.retry = () => location.reload(); // 賢いモデルは常駐させるからリロードでOK
+        window.copy = () => navigator.clipboard.writeText(document.getElementById("poem").textContent).then(()=>alert("コピーしたよ♡"));
+
+        window.save = async () => {
             try {
-                const canvas = await html2canvas(document.getElementById("resultArea"), {scale:2, useCORS:true, allowTaint:true, backgroundColor:null});
-                canvas.toBlob(b => {const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download="mirintya_poem.png";a.click();URL.revokeObjectURL(u);});
-            } catch { alert("長押しして保存してね♡"); }
-        };
-
-        window.sharePoem = () => {
-            const t = document.getElementById("poem-output").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            navigator.share ? navigator.share({title:"みりんてゃポエム♡", text:t}) : window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}`);
-        };
-
-        window.copyPoem = () => {
-            navigator.clipboard.writeText(document.getElementById("poem-output").textContent).then(()=>alert("コピーしたよ♡")).catch(()=>alert("長押ししてね♡"));
-        };
-
-        // パーティクル（スマホ生成中非表示）
-        const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
-        setInterval(() => {
-            if (!isMobile || document.getElementById("loading").style.display !== "block") {
-                const e = document.createElement("div");
-                e.className = "emoji";
-                e.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-                e.style.left = Math.random()*100 + "%";
-                e.style.animationDuration = (Math.random()*6 + 10) + "s";
-                document.getElementById("particles").appendChild(e);
-                setTimeout(() => e.remove(), 16000);
+                const canvas = await html2canvas(document.getElementById("r"), {scale:2, useCORS:true, allowTaint:true, backgroundColor:null, logging:false});
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = "mirintya_poem.png";
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+                alert("画像保存したよ♡");
+            } catch(e) {
+                alert("長押しで保存してね♡");
             }
-        }, 900);
+        };
+
+        window.share = () => {
+            const t = document.getElementById("poem").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
+            navigator.share ? navigator.share({title:"みりんてゃポエム♡",text:t}) : open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t));
+        };
+
+        // パーティクル（スマホは生成中だけ停止）
+        const emo = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
+        setInterval(() => {
+            if(!isMobile || document.getElementById("ing").style.display!=="block"){
+                const e = document.createElement("div"); e.className="e"; e.textContent=emo[Math.random()*emo.length|0];
+                e.style.left = Math.random()*100+"%";
+                e.style.animationDuration = (Math.random()*8+10)+"s";
+                document.getElementById("p").appendChild(e);
+                setTimeout(()=>e.remove(),16000);
+            }
+        },1000);
     </script>
 </body>
 </html>
