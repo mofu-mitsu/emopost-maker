@@ -7,7 +7,32 @@
     <link rel="icon" type="image/x-icon" href="https://mofu-mitsu.github.io/emopost-maker/favicon.ico">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:"Hiragino Kaku Gothic ProN",sans-serif;background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:starryBG 25s ease infinite;text-align:center;padding:2em;color:#555;display:flex;flex-direction:column;align-items:center;min-height:100vh;overflow-x:hidden}
+        
+        /* ★★★★★ iPhoneのPull-to-Refreshを永遠に殺す最強CSS ★★★★★ */
+        html, body {
+            overscroll-behavior-y: none !important;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            height: 100%;
+            min-height: 100vh;
+        }
+        
+        body {
+            font-family:"Hiragino Kaku Gothic ProN",sans-serif;
+            background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);
+            background-size:600% 600%;
+            animation:starryBG 25s ease infinite;
+            text-align:center;
+            padding:2em;
+            color:#555;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            overflow-x:hidden;
+            /* 端っこ誤爆防止 + スクロール余裕 */
+            padding-bottom:30vh;
+        }
+        
         @keyframes starryBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
         .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;font-size:1.5em}
         .emoji{position:absolute;animation:float 10s linear infinite;opacity:0.7}
@@ -89,9 +114,9 @@
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
         const form = document.getElementById("emopostForm");
 
-        // リロード完全防止
-        window.addEventListener('unhandledrejection', e => { e.preventDefault(); console.warn(e.reason); });
-        window.addEventListener('error', e => { e.preventDefault(); console.warn(e.error); });
+        // あらゆるエラーでリロードさせない
+        window.addEventListener('unhandledrejection', e => e.preventDefault());
+        window.addEventListener('error', e => e.preventDefault());
 
         async function initModel() {
             try {
@@ -99,12 +124,11 @@
                     initProgressCallback: info => {
                         document.getElementById("progressText").textContent = Math.round(info.progress * 100) + "%";
                     },
-                    // ★★★ これが正解！CPU（wasm）強制でスマホ安定 ★★★
                     executionProviders: ["wasm"]
                 });
                 document.getElementById("progressText").textContent = "みりんてゃ準備完了！えへへ〜♡";
             } catch (e) {
-                console.error("ロード失敗:", e);
+                console.error(e);
                 document.getElementById("progressText").textContent = "オフラインでもふわふわ♡";
             }
             document.getElementById("modelLoading").style.display = "none";
@@ -117,7 +141,7 @@
             form.style.display = "none";
             document.getElementById("loading").style.display = "block";
 
-            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡\n夢みたいな甘い世界\n永遠に続くのっ♡";
+            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡\n夢みたいな甘い世界♡";
 
             if (engine) {
                 try {
@@ -131,7 +155,6 @@
                     });
                     poem = reply.choices[0].message.content.trim();
                 } catch (err) {
-                    console.error("生成エラー（でもリロードさせない）:", err);
                     poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
                 }
             }
@@ -140,6 +163,14 @@
             document.getElementById("resultArea").style.display = "block";
             document.getElementById("poem-output").textContent = poem;
             document.getElementById("retryButtons").style.display = "flex";
+
+            // 結果表示後に自動で結果エリアまでスクロール（保険）
+            setTimeout(() => {
+                document.getElementById("resultArea").scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 150);
         }
 
         form.onsubmit = e => { e.preventDefault(); generatePoem(); };
@@ -161,14 +192,11 @@
                     backgroundColor: null
                 });
                 canvas.toBlob(blob => {
-                    if (!blob) throw new Error("Blob null");
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
                     a.download = "mirintya_poem.png";
-                    document.body.appendChild(a);
                     a.click();
-                    document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 });
             } catch (e) {
@@ -181,7 +209,7 @@
             if (navigator.share) {
                 navigator.share({title: "みりんてゃポエム♡", text}).catch(() => {});
             } else {
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
             }
         };
 
