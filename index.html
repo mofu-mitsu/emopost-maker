@@ -5,42 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今夜のエモポストメーカー 🌙✨</title>
     <link rel="icon" type="image/x-icon" href="https://mofu-mitsu.github.io/emopost-maker/favicon.ico">
+    <meta name="description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
+    <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
+    <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
+    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
+    <meta property="og:url" content="https://emopost-maker.pages.dev/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        
-        /* ★★★★★ iPhoneのPull-to-Refreshを永遠に殺す最強CSS ★★★★★ */
-        html, body {
-            overscroll-behavior-y: none !important;
-            touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-            height: 100%;
-            min-height: 100vh;
+        html,body{
+            overscroll-behavior-y:none !important;
+            touch-action:pan-y;
+            -webkit-overflow-scrolling:touch;
+            height:100%;min-height:100vh;
         }
-        
-        body {
+        body{
             font-family:"Hiragino Kaku Gothic ProN",sans-serif;
             background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);
             background-size:600% 600%;
             animation:starryBG 25s ease infinite;
-            text-align:center;
-            padding:2em;
-            color:#555;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            overflow-x:hidden;
-            /* 端っこ誤爆防止 + スクロール余裕 */
-            padding-bottom:30vh;
+            text-align:center;padding:2em;color:#555;
+            display:flex;flex-direction:column;align-items:center;
+            overflow-x:hidden;padding-bottom:30vh;
         }
-        
-        @keyframes starryBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes starryBG{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
         .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;font-size:1.5em}
         .emoji{position:absolute;animation:float 10s linear infinite;opacity:0.7}
         @keyframes float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:0.7}90%{opacity:0.7}100%{transform:translateY(-20vh) rotate(360deg);opacity:0}}
         h1{font-family:"Kirang Haerang",cursive,sans-serif;font-size:2.5em;background:#fff;padding:.5em 1em;border:4px dotted #c0c0ff;border-radius:1.5em;box-shadow:0 4px 10px #e6e6fa;margin:1em auto}
         .gradient-text{background:linear-gradient(45deg,#87ceeb,#dda0dd,#ffb6c1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:2px 2px 4px #f0e6ff}
         .container{max-width:500px;width:100%;margin:1em auto}
-        form{background:#ffffffcc;border-radius:1em;padding:2em;box-shadow:0 0 10px #b0c4de}
+        .input-area{background:#ffffffcc;border-radius:1em;padding:2em;box-shadow:0 0 10px #b0c4de}
         input{border:2px solid #c0c0ff;border-radius:1em;padding:.8em 1em;font-size:1em;width:100%;background:#f8f8ff}
         input:focus{outline:none;border-color:#9370db;box-shadow:0 0 15px #dda0dd}
         .cute-button{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;font-size:1.1em;padding:.9em 2em;border-radius:2em;cursor:pointer;transition:.3s;box-shadow:0 4px 10px rgba(0,0,0,0.1);margin:0.5em}
@@ -68,10 +64,11 @@
         <p style="font-size:1.4em;color:#9370db;font-weight:bold" id="progressText">0%</p>
     </div>
 
-    <form id="emopostForm" class="container" style="display:none">
-        <input type="text" id="keyword" placeholder="例: みりんてゃ、幸せ、寂しい" required>
-        <button type="submit" class="cute-button">生成！♡</button>
-    </form>
+    <!-- ★★★ ここが最大の変更点！<form>を完全廃止！ ★★★ -->
+    <div id="emopostForm" class="container input-area" style="display:none">
+        <input type="text" id="keyword" placeholder="例: みりんてゃ、幸せ、寂しい">
+        <button id="generateBtn" type="button" class="cute-button">生成！♡</button>
+    </div>
 
     <div id="loading" class="container" style="display:none">
         <div class="spinner"></div>
@@ -112,9 +109,10 @@
 
         let engine = null;
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
-        const form = document.getElementById("emopostForm");
 
-        // あらゆるエラーでリロードさせない
+        // フォーム廃止 → クリックイベントに完全移行
+        const generateBtn = document.getElementById("generateBtn");
+
         window.addEventListener('unhandledrejection', e => e.preventDefault());
         window.addEventListener('error', e => e.preventDefault());
 
@@ -128,13 +126,64 @@
                 });
                 document.getElementById("progressText").textContent = "みりんてゃ準備完了！えへへ〜♡";
             } catch (e) {
-                console.error(e);
                 document.getElementById("progressText").textContent = "オフラインでもふわふわ♡";
             }
             document.getElementById("modelLoading").style.display = "none";
-            form.style.display = "block";
+            document.getElementById("emopostForm").style.display = "block";
         }
         initModel();
+
+        async function generatePoem() {
+            const kw = document.getElementById("keyword").value.trim() || "みりんてゃ";
+            document.getElementById("emopostForm").style.display = "none";
+            document.getElementById("loading").style.display = "block";
+
+            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡";
+
+            if (engine) {
+                try {
+                    const reply = await engine.chat.completions.create({
+                        messages: [
+                            { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
+                            { role: "user", content: kw }
+                        ],
+                        temperature: 0.9,
+                        max_tokens: 120
+                    });
+                    poem = reply.choices[0].message.content.trim();
+
+                    // ★メモリ解放（超重要！）★
+                    if (engine.interruptSignal) engine.interruptSignal.abort();
+                    if (engine.unload) await engine.unload(); // モデル一時解放
+                    engine = null;
+                    await new Promise(r => setTimeout(r, 500)); // GC待ち
+
+                } catch (err) {
+                    poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
+                }
+            }
+
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("resultArea").style.display = "block";
+            document.getElementById("poem-output").textContent = poem;
+            document.getElementById("retryButtons").style.display = "flex";
+
+            setTimeout(() => {
+                document.getElementById("resultArea").scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 150);
+        }
+
+        generateBtn.addEventListener("click", generatePoem);
+
+        window.retryGenerate = () => {
+            document.getElementById("resultArea").style.display = "none";
+            document.getElementById("retryButtons").style.display = "none";
+            document.getElementById("keyword").value = "";
+            document.getElementById("emopostForm").style.display = "block";
+            document.getElementById("keyword").focus();
+            // 再生成時はモデル再ロード（メモリ節約のため）
+            initModel();
+        };
 
         async function generatePoem() {
             const kw = document.getElementById("keyword").value.trim() || "みりんてゃ";
