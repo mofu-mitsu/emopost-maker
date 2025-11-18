@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今夜のエモポストメーカー 🌙✨</title>
     <link rel="icon" type="image/x-icon" href="https://mofu-mitsu.github.io/favicon.ico">
-    <meta name="description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:title" content="今夜のエモポストメーカー 🌙✨">
-    <meta property="og:description" content="今日の気分やキーワードを入れて、AIが夢のようなポエムを生成！SNS共有もできるよ♪">
-    <meta property="og:image" content="https://mofu-mitsu.github.io/emopost-maker/emopost-ogp.png">
-    <meta property="og:url" content="https://emopost-maker.pages.dev/">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:"Hiragino Kaku Gothic ProN",sans-serif;background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:starryBG 25s ease infinite;text-align:center;padding:2em;color:#555;display:flex;flex-direction:column;align-items:center;min-height:100vh;overflow-x:hidden}
@@ -85,38 +78,29 @@
         <a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a>
     </footer>
 
+    <!-- ★★★ ここを絶対URLに変更 ★★★ -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script type="module" src="./web-tokenizers.js"></script>
-    <script type="module" src="./web-llm.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/lib/web-llm.min.js"></script>
 
     <script type="module">
-        import { CreateMLCEngine } from "./web-llm.js";
+        import { CreateMLCEngine } from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/lib/web-llm.min.js";
 
         let engine = null;
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
         const form = document.getElementById("emopostForm");
 
-        // ★★★ スマホリロード完全防止！！！ ★★★
-        window.addEventListener('unhandledrejection', event => {
-            console.warn('未処理エラー防止:', event.reason);
-            event.preventDefault(); // ← これでページリロード止まる！！
-        });
-
-        window.addEventListener('error', event => {
-            console.warn('エラー防止:', event.error);
-            event.preventDefault();
-        });
+        // エラー完全キャッチ
+        window.addEventListener('unhandledrejection', e => { e.preventDefault(); console.warn(e.reason); });
+        window.addEventListener('error', e => { e.preventDefault(); console.warn(e.error); });
 
         async function initModel() {
             try {
                 engine = await CreateMLCEngine(model, {
                     initProgressCallback: info => {
-                        document.getElementById("progressText").textContent = Math.round(info.progress * 100) + "%";
-                    }
+                        document.getElementById("progressText").textContent = Math.round(info.progress * 100) + "%"
                 });
                 document.getElementById("progressText").textContent = "みりんてゃ準備完了！えへへ〜♡";
             } catch (e) {
-                console.error("モデルロード失敗:", e);
                 document.getElementById("progressText").textContent = "オフラインでもふわふわ♡";
             }
             document.getElementById("modelLoading").style.display = "none";
@@ -125,29 +109,23 @@
         initModel();
 
         async function generatePoem() {
-            const kw = document.getElementById("keyword").value.trim();
-            if (!kw) return;
-
+            const kw = document.getElementById("keyword").value.trim() || "みりんてゃ";
             form.style.display = "none";
             document.getElementById("loading").style.display = "block";
 
-            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡\n夢みたいな甘い世界\n永遠に続くのっ♡";
+            let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心がきゅんってなっちゃうよ♡";
 
-            if (engine) {
-                try {
-                    const reply = await engine.chat.completions.create({
-                        messages: [
-                            { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
-                            { role: "user", content: kw }
-                        ],
-                        temperature: 0.85,
-                        max_tokens: 120
-                    });
-                    poem = reply.choices[0].message.content.trim();
-                } catch (err) {
-                    console.error("生成エラー:", err);
-                }
-            }
+            try {
+                const reply = await engine.chat.completions.create({
+                    messages: [
+                        { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
+                        { role: "user", content: kw }
+                    ],
+                    temperature: 0.9,
+                    max_tokens: 120
+                });
+                poem = reply.choices[0].message.content.trim();
+            } catch (err) {}
 
             document.getElementById("loading").style.display = "none";
             document.getElementById("resultArea").style.display = "block";
@@ -155,10 +133,7 @@
             document.getElementById("retryButtons").style.display = "flex";
         }
 
-        form.onsubmit = e => {
-            e.preventDefault();
-            generatePoem();
-        };
+        form.onsubmit = e => { e.preventDefault(); generatePoem(); };
 
         window.retryGenerate = () => {
             document.getElementById("resultArea").style.display = "none";
@@ -170,47 +145,32 @@
 
         window.saveImage = async () => {
             try {
-                const canvas = await html2canvas(document.getElementById("resultArea"), {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: null,
-                    logging: false
-                });
+                const canvas = await html2canvas(document.getElementById("resultArea"), {scale: 2, useCORS: true});
                 canvas.toBlob(blob => {
-                    if (!blob) return alert("画像生成失敗…長押しで保存してね♡");
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
                     a.download = "mirintya_poem.png";
-                    a.style.display = "none";
-                    document.body.appendChild(a);
                     a.click();
-                    document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 });
-            } catch (err) {
-                console.error("画像保存エラー:", err);
-                alert("画像保存失敗…長押しで保存してね♡");
+            } catch (e) {
+                alert("画像保存できない時は長押ししてね♡");
             }
         };
 
         window.sharePoem = () => {
             const text = document.getElementById("poem-output").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            if (navigator.share) {
-                navigator.share({title: "みりんてゃポエム♡", text}).catch(() => {});
-            } else {
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
-            }
+            if (navigator.share) navigator.share({title: "みりんてゃポエム♡", text});
+            else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
         };
 
         window.copyPoem = () => {
             navigator.clipboard.writeText(document.getElementById("poem-output").textContent)
-                .then(() => alert("コピーしたよ♡"))
-                .catch(() => alert("コピー失敗…長押しでコピーしてね♡"));
+                .then(() => alert("コピーしたよ♡"));
         };
 
-        // パーティクル
+        // パーティクルはそのまま
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const el = document.createElement("div");
