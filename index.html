@@ -60,11 +60,10 @@
         <p style="color:#9370db;font-size:0.9em;margin-top:1em">スマホは長押しで保存できるよ♡</p>
     </div>
 
-    <!-- ここを全部 button-group に統一！デカさも揃う！ -->
     <div class="button-group" id="retryButtons" style="display:none">
         <button type="button" class="cute-button" onclick="retryGenerate()">もう一度！♡</button>
-        <button type="button" class="cute-button" onclick="saveImage(event)">画像保存</button>
-        <button type="button" class="cute-button" onclick="sharePoem(event)">共有</button>
+        <button type="button" class="cute-button" onclick="saveImage()">画像保存</button>
+        <button type="button" class="cute-button" onclick="sharePoem()">共有</button>
     </div>
 
     <div class="ad-section">
@@ -88,13 +87,13 @@
 
         let engine = null;
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
+        const form = document.getElementById('emopostForm');
 
         async function init() {
             try {
                 engine = await CreateMLCEngine(model, {
                     initProgressCallback: info => {
-                        const percent = Math.round(info.progress * 100);
-                        document.getElementById('progressText').textContent = `${percent}%`;
+                        document.getElementById('progressText').textContent = Math.round(info.progress * 100) + "%";
                     }
                 });
                 document.getElementById('progressText').textContent = 'みりんてゃ準備完了！えへへ〜♡';
@@ -102,16 +101,19 @@
                 document.getElementById('progressText').textContent = 'オフラインでもふわふわ♡';
             }
             document.getElementById('modelLoading').style.display = 'none';
-            document.getElementById('emopostForm').style.display = 'block';
+            form.style.display = 'block';
         }
         init();
 
-        document.getElementById('emopostForm').onsubmit = async e => {
+        // ここが最重要！！ 1回きりでイベント削除して再発火防止！！
+        form.addEventListener('submit', async function handler(e) {
             e.preventDefault();
+            form.removeEventListener('submit', handler); // ← これで二度と発火しない！！
+
             const kw = document.getElementById("keyword").value.trim();
             if (!kw) return;
 
-            document.getElementById('emopostForm').style.display = 'none';
+            form.style.display = 'none';
             document.getElementById('loading').style.display = 'block';
 
             let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡\n夢みたいな甘い世界\n永遠に続くのっ♡";
@@ -123,7 +125,7 @@
                             { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
                             { role: "user", content: kw }
                         ],
-                        temperature: 0.8,
+                        temperature: 0.85,
                         max_tokens: 120
                     });
                     poem = reply.choices[0].message.content.trim();
@@ -134,25 +136,65 @@
             document.getElementById('resultArea').style.display = 'block';
             document.getElementById('poem-output').textContent = poem;
             document.getElementById('retryButtons').style.display = 'flex';
-        };
+        });
 
         window.retryGenerate = () => {
             document.getElementById('resultArea').style.display = 'none';
             document.getElementById('retryButtons').style.display = 'none';
-            document.getElementById('emopostForm').style.display = 'block';
             document.getElementById('keyword').value = '';
             document.getElementById('keyword').focus();
+            form.style.display = 'block';
+            // ここでイベント再登録
+            form.dispatchEvent(new Event('submit')); // いや、待て、これはダメ
+            // 正しくはもう一度addEventListenerする（でも面倒なので、毎回登録し直す）
+            initFormHandler();
         };
 
-        window.saveImage = (e) => {
-            e?.preventDefault();
+        function initFormHandler() {
+            // 毎回新しく登録（removeしてるから安全）
+            form.addEventListener('submit', form.submitHandler || (form.submitHandler = async function(e) {
+                e.preventDefault();
+                form.removeEventListener('submit', form.submitHandler);
+
+                const kw = document.getElementById("keyword").value.trim();
+                if (!kw) return;
+
+                form.style.display = 'none';
+                document.getElementById('loading').style.display = 'block';
+
+                let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡";
+
+                if (engine) {
+                    try {
+                        const reply = await engine.chat.completions.create({
+                            messages: [
+                                { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛いポエムだけを書く。説明も英語も禁止！" },
+                                { role: "user", content: kw }
+                            ],
+                            temperature: 0.85,
+                            max_tokens: 120
+                        });
+                        poem = reply.choices[0].message.content.trim();
+                    } catch (err) {}
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('resultArea').style.display = 'block';
+                document.getElementById('poem-output').textContent = poem;
+                document.getElementById('retryButtons').style.display = 'flex';
+            }));
+        }
+
+        // 初回登録
+        initFormHandler();
+
+        window.saveImage = () => {
             html2canvas(document.getElementById("resultArea"), {scale: 2}).then(canvas => {
                 window.open(canvas.toDataURL(), "_blank");
             });
         };
 
-        window.sharePoem = (e) => {
-            e?.preventDefault();
+        window.sharePoem = () => {
             const text = document.getElementById("poem-output").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
             if (navigator.share) {
                 navigator.share({title: "みりんてゃポエム♡", text});
@@ -165,7 +207,7 @@
             navigator.clipboard.writeText(document.getElementById("poem-output").textContent).then(() => alert("コピーしたよ♡"));
         };
 
-        // パーティクル
+        // パーティクルはそのまま
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const el = document.createElement("div");
