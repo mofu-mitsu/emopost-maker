@@ -14,20 +14,16 @@
     <meta name="twitter:card" content="summary_large_image">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        html,body{
-            overscroll-behavior-y:none !important;
-            touch-action:pan-y;
-            -webkit-overflow-scrolling:touch;
-            height:100%;min-height:100vh;
-        }
+        html,body{overscroll-behavior-y:none !important;touch-action:pan-y;height:100%;min-height:100vh}
         body{
             font-family:"Hiragino Kaku Gothic ProN",sans-serif;
-            background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);
-            background-size:600% 600%;
-            animation:starryBG 25s ease infinite;
+            background:#f5e6ff;
             text-align:center;padding:2em;color:#555;
             display:flex;flex-direction:column;align-items:center;
             overflow-x:hidden;padding-bottom:30vh;
+        }
+        @media (min-width:768px){
+            body{background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:starryBG 25s ease infinite}
         }
         @keyframes starryBG{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
         .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;font-size:1.5em}
@@ -55,7 +51,7 @@
     <h1><span class="gradient-text">今夜のエモポストメーカー 🌙✨</span></h1>
     <p class="container" style="color:#708090;line-height:1.6">
         今日の気分やキーワードを入れてね。みりんてゃみたいにふわふわポエム生成するよ〜♡<br>
-        <span style="color:#9370db">※初回10-40秒待ってね♪（完全にオフライン！）</span>
+        <span style="color:#9370db">※初回10-30秒待ってね♪（完全にオフライン！）</span>
     </p>
 
     <div id="modelLoading" class="container">
@@ -88,38 +84,34 @@
     </div>
 
     <div class="ad-section">
-        <p style="font-weight:bold;color:#6a5acd">ポエム後はおせちで癒し♪</p>
+        <p style="font-weight:bold;color:#6a5acd">ポエム後はおせちで癒し♪</ 楽天おせち2026</p>
         <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow">
             <img loading="lazy" src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" style="max-width:100%;height:auto;border-radius:8px">
         </a>
-        <p style="color:#6a5acd;font-weight:bold">🎍 楽天おせち2026 最大350円OFF！</p>
     </div>
 
-    <footer>
-        <a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a>
-    </footer>
+    <footer><a href="https://mofu-mitsu.github.io/" style="color:#6a5acd;font-weight:bold;text-decoration:none">TOPへ戻る</a></footer>
 
+    <!-- ★★★★ ここが最大の修正点！！！ ★★★★ -->
+    <!-- Cloudflare Pagesで動かすための正しいパス -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script type="module" src="./web-tokenizers.js"></script>
-    <script type="module" src="./web-llm.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.39/+esm"></script>
 
     <script type="module">
-        import { CreateMLCEngine } from "./web-llm.js";
+        const { CreateMLCEngine } = window["@mlc-ai/web-llm"];
 
         let engine = null;
-        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
+        // ★★★ 0.5Bモデル（スマホ爆安定） ★★★
+        const model = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
 
-        // エラー抑止
-        window.addEventListener('unhandledrejection', e => e.preventDefault());
-        window.addEventListener('error', e => e.preventDefault());
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         async function initModel() {
             try {
                 engine = await CreateMLCEngine(model, {
                     initProgressCallback: info => {
                         document.getElementById("progressText").textContent = Math.round(info.progress * 100) + "%";
-                    },
-                    executionProviders: ["wasm"]
+                    }
                 });
                 document.getElementById("progressText").textContent = "みりんてゃ準備完了！えへへ〜♡";
             } catch (e) {
@@ -135,6 +127,7 @@
             const kw = document.getElementById("keyword").value.trim() || "みりんてゃ";
             document.getElementById("emopostForm").style.display = "none";
             document.getElementById("loading").style.display = "block";
+            if (isMobile) document.getElementById("particles").style.display = "none";
 
             let poem = "えへへ〜♡ きみとふわふわなのっ♪\n心きゅんきゅん溶けちゃうよ♡";
 
@@ -149,11 +142,6 @@
                         max_tokens: 120
                     });
                     poem = reply.choices[0].message.content.trim();
-
-                    // メモリ解放（クラッシュ防止）
-                    if (engine.unload) await engine.unload();
-                    engine = null;
-
                 } catch (err) {
                     poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
                 }
@@ -163,10 +151,9 @@
             document.getElementById("resultArea").style.display = "block";
             document.getElementById("poem-output").textContent = poem;
             document.getElementById("retryButtons").style.display = "flex";
+            if (isMobile) document.getElementById("particles").style.display = "block";
 
-            setTimeout(() => {
-                document.getElementById("resultArea").scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 150);
+            setTimeout(() => document.getElementById("resultArea").scrollIntoView({behavior:'smooth',block:'center'}), 150);
         }
 
         document.getElementById("generateBtn").addEventListener("click", generatePoem);
@@ -177,15 +164,13 @@
             document.getElementById("keyword").value = "";
             document.getElementById("emopostForm").style.display = "block";
             document.getElementById("keyword").focus();
-            initModel(); // 再ロード
         };
 
-        // 画像保存・共有・コピー（省略なしで全部残してる）
         window.saveImage = async () => {
             try {
-                const canvas = await html2canvas(document.getElementById("resultArea"), {scale:2, useCORS:true, allowTaint:true, backgroundColor:null});
+                const canvas = await html2canvas(document.getElementById("resultArea"), {scale:2});
                 canvas.toBlob(b => {const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download="mirintya_poem.png";a.click();URL.revokeObjectURL(u);});
-            } catch { alert("画像保存できない時は長押ししてね♡"); }
+            } catch { alert("長押しして保存してね♡"); }
         };
 
         window.sharePoem = () => {
@@ -197,16 +182,17 @@
             navigator.clipboard.writeText(document.getElementById("poem-output").textContent).then(()=>alert("コピーしたよ♡")).catch(()=>alert("長押ししてね♡"));
         };
 
-        // パーティクル
         const emojis = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
-            const e = document.createElement("div");
-            e.className = "emoji";
-            e.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-            e.style.left = Math.random()*100 + "%";
-            e.style.animationDuration = (Math.random()*6 + 10) + "s";
-            document.getElementById("particles").appendChild(e);
-            setTimeout(() => e.remove(), 16000);
+            if (!isMobile || document.getElementById("loading").style.display !== "block") {
+                const e = document.createElement("div");
+                e.className = "emoji";
+                e.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+                e.style.left = Math.random()*100 + "%";
+                e.style.animationDuration = (Math.random()*6 + 10) + "s";
+                document.getElementById("particles").appendChild(e);
+                setTimeout(() => e.remove(), 16000);
+            }
         }, 900);
     </script>
 </body>
