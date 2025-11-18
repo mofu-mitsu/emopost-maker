@@ -60,8 +60,10 @@
         <p style="color:#9370db;font-size:0.9em;margin-top:1em">スマホは長押しで保存できるよ♡</p>
     </div>
 
+    <!-- ここが最重要修正！！ -->
     <div class="button-group" id="retryButtons" style="display:none">
         <button type="button" class="cute-button" onclick="retryGenerate()">もう一度！♡</button>
+        <!-- 絶対にtype="button"明記！！ -->
         <button type="button" class="cute-button" onclick="saveImage()">画像保存</button>
         <button type="button" class="cute-button" onclick="sharePoem()">共有</button>
     </div>
@@ -89,7 +91,6 @@
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
         const form = document.getElementById("emopostForm");
 
-        // モデルロード
         async function initModel() {
             try {
                 engine = await CreateMLCEngine(model, {
@@ -106,7 +107,6 @@
         }
         initModel();
 
-        // 生成処理（これを毎回呼び出す）
         async function generatePoem() {
             const kw = document.getElementById("keyword").value.trim();
             if (!kw) return;
@@ -136,13 +136,11 @@
             document.getElementById("retryButtons").style.display = "flex";
         }
 
-        // フォーム送信 → generatePoem呼び出し（preventDefaultのみ）
         form.onsubmit = e => {
             e.preventDefault();
             generatePoem();
         };
 
-        // もう一度！ → ただ戻すだけ（絶対にsubmitしない！！）
         window.retryGenerate = () => {
             document.getElementById("resultArea").style.display = "none";
             document.getElementById("retryButtons").style.display = "none";
@@ -151,9 +149,17 @@
             form.style.display = "block";
         };
 
+        // 画像保存 → ポップアップブロック回避でダウンロード方式に変更！
         window.saveImage = () => {
             html2canvas(document.getElementById("resultArea"), {scale: 2}).then(canvas => {
-                window.open(canvas.toDataURL(), "_blank");
+                const blob = canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "mirintya_poem.png";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
             });
         };
 
