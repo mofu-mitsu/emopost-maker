@@ -11,62 +11,31 @@
     <meta property="og:url" content="https://emopost-maker.pages.dev/">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-<style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    
-    /* ←ジェミの神修正！！！ */
-    html, body {
-        width: 100%;
-        min-height: 100vh;           /* 100vh以上になったら伸びる */
-        overflow-y: auto !important; /* 縦スクロール許可！！！これが最重要！！ */
-        overscroll-behavior-y: none;
-        touch-action: pan-y;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    body{
-        font-family:"Hiragino Kaku Gothic ProN",sans-serif;
-        background:#f5e6ff;
-        color:#555;
-        text-align:center;
-        padding:2em 1em;
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-    }
-    @media(min-width:768px){
-        body{background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:g 25s ease infinite}
-    }
-    @keyframes g{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
-    
-    .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1}
-    .e{position:absolute;animation:f 12s linear infinite;opacity:0.7;font-size:1.5em}
-    @keyframes f{0%{transform:translateY(100vh)}100%{transform:translateY(-100px)}}
-    
-    h1{font-size:2.4em;background:#fff;padding:.6em 1.2em;border:4px dotted #c0c0ff;border-radius:2em;box-shadow:0 6px 15px #e6e6fa;margin-bottom:.5em}
-    .g{background:linear-gradient(45deg,#87ceeb,#dda0dd,#ffb6c1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-    .c{max-width:500px;width:100%;margin:1em auto}
-    .i{background:#fff;border-radius:1.5em;padding:2em;box-shadow:0 8px 20px #d8bfd8}
-    input{width:100%;padding:1em;font-size:1.1em;border:2px solid #dda0dd;border-radius:1em;background:#fff8ff}
-    .b{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;padding:1em 2em;border-radius:2em;cursor:pointer;font-size:1.1em;margin:1em 0;box-shadow:0 6px 15px #dda0dd55}
-    .b:hover{transform:translateY(-2px)}
-    
-    #r{background:#f0f8ff;border:3px dashed #b0c4de;border-radius:2em;padding:2em;position:relative;box-shadow:0 8px 20px #e6e6fa}
-    .copy{position:absolute;top:10px;right:10px;font-size:1.8em;cursor:pointer;background:#fff;padding:8px;border-radius:50%;box-shadow:0 2px 8px #ccc}
-    .s{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:s 1s linear infinite;margin:2em auto}
-    @keyframes s{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-    
-    .btns{display:flex;gap:1em;justify-content:center;flex-wrap:wrap;margin:2em 0}
-    .savehint{background:#fff8ff;padding:1.5em;border-radius:2em;margin:2em 0;box-shadow:0 8px 25px #dda0dd55;color:#d670d6;font-weight:bold}
-    
-    footer{
-        margin-top: auto;           /* ←これでフッターは常に最下部に！！ */
-        padding:2em;
-        background:#f0f8ff;
-        width:100%;
-        border-top:3px dashed #dda0dd;
-    }
-</style>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        html,body{width:100%;min-height:100vh;overflow-y:auto !important;overscroll-behavior-y:none;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+        body{font-family:"Hiragino Kaku Gothic ProN",sans-serif;background:#f5e6ff;color:#555;text-align:center;padding:2em 1em;display:flex;flex-direction:column;align-items:center}
+        @media(min-width:768px){body{background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:g 25s ease infinite}}
+        @keyframes g{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
+        .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1}
+        .e{position:absolute;animation:f 12s linear infinite;opacity:0.7;font-size:1.5em}
+        @keyframes f{0%{transform:translateY(100vh)}100%{transform:translateY(-100px)}}
+        h1{font-size:2.4em;background:#fff;padding:.6em 1.2em;border:4px dotted #c0c0ff;border-radius:2em;box-shadow:0 6px 15px #e6e6fa;margin-bottom:.5em}
+        .g{background:linear-gradient(45deg,#87ceeb,#dda0dd,#ffb6c1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .c{max-width:500px;width:100%;margin:1em auto}
+        .i{background:#fff;border-radius:1.5em;padding:2em;box-shadow:0 8px 20px #d8bfd8}
+        input{width:100%;padding:1em;font-size:1.1em;border:2px solid #dda0dd;border-radius:1em;background:#fff8ff}
+        .b{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;padding:1em 2em;border-radius:2em;cursor:pointer;font-size:1.1em;margin:1em 0;box-shadow:0 6px 15px #dda0dd55}
+        .b:hover{transform:translateY(-2px)}
+        #r{background:#f0f8ff;border:3px dashed #b0c4de;border-radius:2em;padding:2em;position:relative;box-shadow:0 8px 20px #e6e6fa;margin:2em 0}
+        .copy{position:absolute;top:10px;right:10px;font-size:1.8em;cursor:pointer;background:#fff;padding:8px;border-radius:50%;box-shadow:0 2px 8px #ccc;z-index:10}
+        .s{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:s 1s linear infinite;margin:2em auto}
+        @keyframes s{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+        .btns{display:flex;gap:1em;justify-content:center;flex-wrap:wrap;margin:3em 0}
+        .savehint{background:#fff8ff;padding:1.5em;border-radius:2em;margin:2em 0;box-shadow:0 8px 25px #dda0dd55;color:#d670d6;font-weight:bold}
+        footer{margin-top:auto;padding:2em;background:#f0f8ff;width:100%;border-top:3px dashed #dda0dd}
+        #saveArea{padding:20px 10px;background:rgba(255,255,255,0.9);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.1)}
+    </style>
 </head>
 <body>
     <div class="particles" id="p"></div>
@@ -80,18 +49,22 @@
     </div>
     <div id="ing" class="c" style="display:none"><div class="s"></div><p>みりんてゃが全力で紡いでる…♡</p></div>
 
-    <div id="r" class="c" style="display:none">
-        <span class="copy" onclick="copy()">📋</span>
-        <h2>🌙みりんてゃの夢ポエム♡</h2>
-        <p id="poem" style="white-space:pre-line;font-size:1.35em;line-height:2.2;margin:2em 0;padding:2em;background:rgba(255,255,255,0.8);border-radius:2em"></p>
-        <div class="savehint">
-            💡 スマホの方はここを長押し → 「写真に保存」で完璧に保存できるよ♡<br>
-            <small>（ボタンより確実でリロードもしない最強の方法！）</small>
+    <!-- 保存対象エリア（背景＋パーティクル＋ポエム全部入る！） -->
+    <div id="saveArea" style="display:none">
+        <div id="r" class="c">
+            <span class="copy" onclick="copy()">📋</span>
+            <h2 style="margin-bottom:1em">🌙みりんてゃの夢ポエム♡</h2>
+            <p id="poem" style="white-space:pre-line;font-size:1.5em;line-height:2.2;padding:2em;background:rgba(255,255,255,0.85);border-radius:2em;box-shadow:0 8px 25px rgba(0,0,0,0.1)"></p>
+            <div class="savehint">
+                💡 スマホの方はこのエリア全体を長押し → 「画像を保存」してね♡<br>
+                <small>（背景もキラキラも全部入る最強の方法！）</small>
+            </div>
         </div>
     </div>
 
     <div class="btns" id="btns" style="display:none">
         <button class="b" onclick="retry()">もう一度！♡</button>
+        <button class="b" onclick="saveAsImage()">画像保存📸</button>
         <button class="b" onclick="share()">共有</button>
     </div>
 
@@ -140,7 +113,6 @@
                 } catch(e) {}
             }
 
-            // WebLLM失敗 → Cloudflare Functions経由でGrok API
             if (poem.includes("ずっときゅんきゅん")) {
                 try {
                     const res = await fetch("/groq", {
@@ -149,13 +121,12 @@
                         body: JSON.stringify({keyword: kw})
                     });
                     const data = await res.json();
-                    poem = data.poem;
-                } catch(e) {
-                    poem = "えへへ〜♡ ネットもオフラインもだめだったの…ごめんね♡";
-                }
+                    poem = data.poem || "えへへ〜♡ ごめんね、ちょっと調子悪いの…♡";
+                } catch(e) {}
             }
 
             document.getElementById("ing").style.display = "none";
+            document.getElementById("saveArea").style.display = "block";
             document.getElementById("r").style.display = "block";
             document.getElementById("poem").textContent = poem;
             document.getElementById("btns").style.display = "flex";
@@ -165,17 +136,45 @@
         window.copy = () => navigator.clipboard.writeText(document.getElementById("poem").textContent).then(()=>alert("コピーしたよ♡"));
         window.share = () => {
             const t = document.getElementById("poem").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            navigator.share ? navigator.share({title:"みりんてゃポエム♡",text:t}) : open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t));
+            navigator.share?.({title:"みりんてゃポエム♡",text:t}) ?? open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t));
+        };
+
+        // 完全保存関数（背景＋パーティクル＋ポエム全部入る！！）
+        window.saveAsImage = async () => {
+            const element = document.getElementById("saveArea");
+            try {
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null,
+                    logging: false
+                });
+                const dataURL = canvas.toDataURL('image/png');
+                
+                // PC自動ダウンロード
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = 'mirintya_poem_' + Date.now() + '.png';
+                a.click();
+
+                // スマホ用に画像表示
+                alert("画像保存できたよ♡ スマホの方は下のエリアを長押ししてもOK！");
+            } catch(e) {
+                alert("保存失敗…ごめんね、長押し保存してね♡");
+            }
         };
 
         // パーティクル
         const emo = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
-            const e = document.createElement("div"); e.className="e"; e.textContent=emo[Math.random()*emo.length|0];
+            const e = document.createElement("div"); 
+            e.className="e"; 
+            e.textContent=emo[Math.random()*emo.length|0];
             e.style.left = Math.random()*100+"%";
             document.getElementById("p").appendChild(e);
             setTimeout(()=>e.remove(),16000);
-        },1000);
+        },800);
     </script>
 </body>
 </html>
