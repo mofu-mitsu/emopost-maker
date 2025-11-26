@@ -139,29 +139,66 @@
             navigator.share?.({title:"みりんてゃポエム♡",text:t}) ?? open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t));
         };
 
-        // 完全保存関数（背景＋パーティクル＋ポエム全部入る！！）
+// 完全保存関数（修正版だよ♡）
         window.saveAsImage = async () => {
             const element = document.getElementById("saveArea");
+            const btn = document.querySelector('button[onclick="saveAsImage()"]');
+            
+            // ボタンを連打できないように一時的に無効化
+            btn.disabled = true;
+            btn.textContent = "生成中…♡";
+
             try {
+                // html2canvasで画像化
                 const canvas = await html2canvas(element, {
-                    scale: 2,
+                    scale: 3, // 画質を良くするためにちょっと数値を上げたよ！
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: null,
                     logging: false
                 });
+                
                 const dataURL = canvas.toDataURL('image/png');
                 
-                // PC自動ダウンロード
-                const a = document.createElement('a');
-                a.href = dataURL;
-                a.download = 'mirintya_poem_' + Date.now() + '.png';
-                a.click();
+                // --- ここから変更点 ---
+                
+                // 1. スマホ用に、生成された画像を画面に表示する
+                // 元のHTML（テキスト版）を消して、画像版に置き換えちゃう作戦！
+                const img = new Image();
+                img.src = dataURL;
+                img.style.width = "100%";
+                img.style.maxWidth = "500px";
+                img.style.borderRadius = "20px";
+                img.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
+                
+                // 既存のsaveAreaの中身をクリアして、画像だけを入れる
+                const saveArea = document.getElementById("saveArea");
+                saveArea.innerHTML = ""; 
+                saveArea.appendChild(img);
+                
+                // 保存のヒントを出し直す
+                const hint = document.createElement("div");
+                hint.className = "savehint";
+                hint.innerHTML = "📸 画像ができたよ！<br>上の画像を<b>長押し</b>して「写真に保存」を選んでね♡";
+                saveArea.appendChild(hint);
 
-                // スマホ用に画像表示
-                alert("画像保存できたよ♡ スマホの方は下のエリアを長押ししてもOK！");
+                // 2. PCの人は今まで通り自動ダウンロードも試みる（親切設計）
+                if(!navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)){
+                    const a = document.createElement('a');
+                    a.href = dataURL;
+                    a.download = 'mirintya_poem_' + Date.now() + '.png';
+                    a.click();
+                }
+
+                alert("画像に変換したよ♡ 長押しで保存してね！");
+
             } catch(e) {
-                alert("保存失敗…ごめんね、長押し保存してね♡");
+                console.error(e);
+                alert("保存失敗…ごめんね、もう一回試してみて♡");
+            } finally {
+                // ボタンを元に戻す
+                btn.disabled = false;
+                btn.textContent = "画像保存📸";
             }
         };
 
