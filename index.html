@@ -47,6 +47,13 @@
         <input type="text" id="kw" placeholder="例：みりんてゃ、幸せ、夜空">
         <button id="gen" class="b">生成！♡</button>
     </div>
+    <div id="debugPanel" class="c i" style="margin-top:2em;padding:1.5em;background:#fff8ff;border:2px dashed #ff99cc;border-radius:1.5em">
+        <p style="font-size:0.95em;color:#d670d6;font-weight:bold">🔧 デバッグモード（開発者用・公開時は非表示になるよ）</p>
+        <button class="b" onclick="testGroqKey()" style="font-size:0.9em;padding:0.8em 1.8em">
+            🔑 Groq APIキー生存確認テスト
+        </button>
+        <p id="keyStatus" style="margin-top:1em;font-weight:bold;min-height:3em"></p>
+    </div>
     <div id="ing" class="c" style="display:none"><div class="s"></div><p>みりんてゃが全力で紡いでる…♡</p></div>
 
     <!-- 保存対象エリア（背景＋パーティクル＋ポエム全部入る！） -->
