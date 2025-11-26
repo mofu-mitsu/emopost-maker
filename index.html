@@ -47,13 +47,6 @@
         <input type="text" id="kw" placeholder="例：みりんてゃ、幸せ、夜空">
         <button id="gen" class="b">生成！♡</button>
     </div>
-    <div id="debugPanel" class="c i" style="margin-top:2em;padding:1.5em;background:#fff8ff;border:2px dashed #ff99cc;border-radius:1.5em">
-        <p style="font-size:0.95em;color:#d670d6;font-weight:bold">🔧 デバッグモード（開発者用・公開時は非表示になるよ）</p>
-        <button class="b" onclick="testGroqKey()" style="font-size:0.9em;padding:0.8em 1.8em">
-            🔑 Groq APIキー生存確認テスト
-        </button>
-        <p id="keyStatus" style="margin-top:1em;font-weight:bold;min-height:3em"></p>
-    </div>
     <div id="ing" class="c" style="display:none"><div class="s"></div><p>みりんてゃが全力で紡いでる…♡</p></div>
 
     <!-- 保存対象エリア（背景＋パーティクル＋ポエム全部入る！） -->
@@ -206,36 +199,6 @@
                 // ボタンを元に戻す
                 btn.disabled = false;
                 btn.textContent = "画像保存📸";
-            }
-        };
-        // ★★★★★ ここから追加！！！（このままコピペ） ★★★★★
-        // Groq APIキー生存確認テスト（最強）
-        window.testGroqKey = async () => {
-            const status = document.getElementById("keyStatus");
-            status.textContent = "確認中…♡";
-            
-            try {
-                const res = await fetch("/groq", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({keyword: "みりんてゃ"})
-                });
-
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
-                }
-
-                const data = await res.json();
-                console.log("Groq生存テスト結果:", data);
-
-                if (data.poem && data.poem.includes("えへへ〜♡")) {
-                    status.innerHTML = "✅ <span style='color:#d670d6'>Groq APIキー完璧に生きてる！！！</span><br>70B賢いみりんてゃ待機中♡";
-                } else {
-                    status.innerHTML = "❌ Groqから変な返事きた…（キー死んでるかも）";
-                }
-            } catch(e) {
-                console.error("Groq死んでる:", e);
-                status.innerHTML = `❌ Groq完全に死んでる…（${e.message}）<br>→ キー切れてるかFunctions壊れてるよ…`;
             }
         };
         // パーティクル
