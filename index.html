@@ -71,42 +71,22 @@
     <script type="module">
         import { CreateMLCEngine } from "./web-llm.js";
         let engine = null;
-        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // 賢いみりんてゃ（元のまま）
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-        // Groq APIキー（Cloudflare Pagesの環境変数から自動取得）
-        const GROQ_API_KEY = import.meta.env ? import.meta.env.GROQ_API_KEY : null; // プロンプトなし！Cloudflareシークレットから自動
-        if (!GROQ_API_KEY && !engine) {
-            // 環境変数なしの場合のみプロンプト（開発者用）
-            const key = prompt("GROQ APIキーを入力してね♡ (開発者用)");
-            if (key) GROQ_API_KEY = key;
-        }
-
-        // リロード防止
-        window.addEventListener('unhandledrejection', e => e.preventDefault());
-        window.addEventListener('error', e => e.preventDefault());
+        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
 
         async function init() {
-            document.getElementById('prog').textContent = '0%';
             try {
                 engine = await CreateMLCEngine(model, {
-                    initProgressCallback: info => {
-                        const percent = Math.round(info.progress * 100);
-                        document.getElementById('prog').textContent = `${percent}%`;
-                        if (percent >= 100) document.getElementById('prog').textContent = '100% 完了！♡';
-                    }
+                    initProgressCallback: i => document.getElementById("prog").textContent = Math.round(i.progress*100)+"%"
                 });
-                document.getElementById('prog').textContent = 'オフラインみりんてゃ準備完了！えへへ〜♡';
-            } catch (e) {
-                document.getElementById('prog').textContent = 'オフライン失敗…Grokみりんてゃに切り替え中♡';
-                console.log("WebLLM失敗 → Grok API使用");
+                document.getElementById("prog").textContent = "オフラインみりんてゃ準備完了！♡";
+            } catch(e) {
+                document.getElementById("prog").textContent = "ネットみりんてゃに切り替え完了！♡";
             }
-            document.getElementById('load').style.display = 'none';
-            document.getElementById('form').style.display = 'block';
+            document.getElementById("load").style.display = "none";
+            document.getElementById("form").style.display = "block";
         }
         init();
 
-        // メイン生成関数
         document.getElementById("gen").onclick = async () => {
             const kw = document.getElementById("kw").value.trim() || "みりんてゃ";
             document.getElementById("form").style.display = "none";
@@ -114,7 +94,6 @@
 
             let poem = "えへへ〜♡ きみとふわふわなのっ♪\nずっときゅんきゅんしちゃうよ♡";
 
-            // WebLLM成功してたら使う
             if (engine) {
                 try {
                     const res = await engine.chat.completions.create({
@@ -125,34 +104,21 @@
                         temperature:0.85, max_tokens:150
                     });
                     poem = res.choices[0].message.content.trim();
-                } catch (e) {
-                    console.log("WebLLM失敗 → Grok API切り替え");
-                }
-            } 
+                } catch(e) {}
+            }
 
-            // WebLLM失敗 → Grok API（廃止モデル修正）
-            if (poem === "えへへ〜♡ きみとふわふわなのっ♪\nずっときゅんきゅんしちゃうよ♡") {
+            // WebLLM失敗 → Cloudflare Functions経由でGrok API
+            if (poem.includes("ずっときゅんきゅん")) {
                 try {
-                    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    const res = await fetch("/groq", {
                         method: "POST",
-                        headers: {
-                            "Authorization": `Bearer ${GROQ_API_KEY}`,
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            model: "llama-3.1-8b-instant", // 廃止モデルを安定版に変更
-                            messages: [
-                                { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！" },
-                                { role: "user", content: kw }
-                            ],
-                            temperature: 0.85,
-                            max_tokens: 150
-                        })
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({keyword: kw})
                     });
                     const data = await res.json();
-                    poem = data.choices[0].message.content.trim();
-                } catch (err) {
-                    poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
+                    poem = data.poem;
+                } catch(e) {
+                    poem = "えへへ〜♡ ネットもオフラインもだめだったの…ごめんね♡";
                 }
             }
 
