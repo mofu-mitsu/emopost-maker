@@ -40,20 +40,20 @@
 <body>
     <div class="particles" id="p"></div>
     <h1><span class="g">今夜のエモポストメーカー 🌙✨</span></h1>
-    <p class="c">今日の気分やキーワードを入れてね♡ 賢いみりんてゃがふわふわポエム作るよ〜！</p>
+    <p class="c">今日の気分やキーワードを入れてね♡</p>
 
-    <div id="load" class="c"><div class="s"></div><p>賢いみりんてゃ呼び出し中…えへへ〜♡</p><p id="prog">0%</p></div>
+    <div id="load" class="c"><div class="s"></div><p>AI呼び出し中〜♡</p><p id="prog">0%</p></div>
     <div id="form" class="c i" style="display:none">
-        <input type="text" id="kw" placeholder="例：みりんてゃ、幸せ、夜空">
+        <input type="text" id="kw" placeholder="例：幸せ、夜空">
         <button id="gen" class="b">生成！♡</button>
     </div>
-    <div id="ing" class="c" style="display:none"><div class="s"></div><p>みりんてゃが全力で紡いでる…♡</p></div>
+    <div id="ing" class="c" style="display:none"><div class="s"></div><p>全力で紡いでるよ…♡</p></div>
 
     <!-- 保存対象エリア（背景＋パーティクル＋ポエム全部入る！） -->
     <div id="saveArea" style="display:none">
         <div id="r" class="c">
             <span class="copy" onclick="copy()">📋</span>
-            <h2 style="margin-bottom:1em">🌙みりんてゃの夢ポエム♡</h2>
+            <h2 style="margin-bottom:1em">🌙今夜の夢ポエム♡</h2>
             <p id="poem" style="white-space:pre-line;font-size:1.5em;line-height:2.2;padding:2em;background:rgba(255,255,255,0.85);border-radius:2em;box-shadow:0 8px 25px rgba(0,0,0,0.1)"></p>
             <div class="savehint">
                 💡 スマホの方はこのエリア全体を長押し → 「画像を保存」してね♡<br>
@@ -104,7 +104,7 @@
                 try {
                     const res = await engine.chat.completions.create({
                         messages: [
-                            {role:"system",content:"あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！"},
+                            {role:"system",content:"あなたは超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！"},
                             {role:"user",content:kw}
                         ],
                         temperature:0.85, max_tokens:150
@@ -136,7 +136,7 @@
         window.copy = () => navigator.clipboard.writeText(document.getElementById("poem").textContent).then(()=>alert("コピーしたよ♡"));
         window.share = () => {
             const t = document.getElementById("poem").textContent + "\n#今夜のエモポスト\nhttps://emopost-maker.pages.dev/";
-            navigator.share?.({title:"みりんてゃポエム♡",text:t}) ?? open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t));
+            navigator.share?.({title:"今夜のエモポスト♡",text:t}) ?? open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t));
         };
 
 // 完全保存関数（修正版だよ♡）
