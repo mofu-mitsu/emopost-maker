@@ -13,14 +13,14 @@
     <meta name="twitter:card" content="summary_large_image">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        html,body{height:100vh;overflow:hidden;overscroll-behavior-y:none !important;}
-        body{font-family:"Hiragino Kaku Gothic ProN",sans-serif;background:#f5e6ff;color:#555;text-align:center;padding:2em;display:flex;flex-direction:column;align-items:center;}
+        html,body{height:100vh;min-height:100vh;overflow:hidden;overscroll-behavior-y:none !important;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+        body{font-family:"Hiragino Kaku Gothic ProN",sans-serif;background:#f5e6ff;color:#555;text-align:center;padding:2em;display:flex;flex-direction:column;align-items:center}
         @media(min-width:768px){body{background:linear-gradient(270deg,#e6f3ff,#f0e6ff,#ffe6f8);background-size:600% 600%;animation:g 25s ease infinite}}
         @keyframes g{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
         .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1}
         .e{position:absolute;animation:f 12s linear infinite;opacity:0.7;font-size:1.5em}
         @keyframes f{0%{transform:translateY(100vh)}100%{transform:translateY(-100px)}}
-        h1{font-size:2.4em;background:#fff;padding:.6em 1.2em;border:4px dotted #c0c0ff;border-radius:2em;box-shadow:0 6px 15px #e6e6fa}
+        h1{font-size:2.4em;background:#fff;padding:.6em 1.2em;border:4px dotted #c0c0ff;border-radius:2em;box-shadow:0 6px 15px #e6e6fa;margin-bottom:.5em}
         .g{background:linear-gradient(45deg,#87ceeb,#dda0dd,#ffb6c1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
         .c{max-width:500px;width:100%;margin:1em auto}
         .i{background:#fff;border-radius:1.5em;padding:2em;box-shadow:0 8px 20px #d8bfd8}
@@ -53,7 +53,7 @@
         <p id="poem" style="white-space:pre-line;font-size:1.35em;line-height:2.2;margin:2em 0;padding:2em;background:rgba(255,255,255,0.8);border-radius:2em"></p>
         <div class="savehint">
             💡 スマホの方はここを長押し → 「写真に保存」で完璧に保存できるよ♡<br>
-            <small>（一番確実でリロードもしない最強の方法！）</small>
+            <small>（ボタンより確実でリロードもしない最強の方法！）</small>
         </div>
     </div>
 
@@ -64,42 +64,47 @@
 
     <footer><a href="https://mofu-mitsu.github.io/" style="color:#9370db;font-weight:bold">TOPへ戻る</a></footer>
 
-<script type="module">
-    import { CreateMLCEngine } from "./web-llm.js";
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script type="module" src="./web-tokenizers.js"></script>
+    <script type="module" src="./web-llm.js"></script>
 
-    let engine = null;
-    const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // 賢いみりんてゃ（元のまま）
+    <script type="module">
+        import { CreateMLCEngine } from "./web-llm.js";
+        let engine = null;
+        const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // 賢いみりんてゃ（元のまま）
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    // Groq APIキー（環境変数から取得）
-    const GROQ_API_KEY = import.meta.env ? import.meta.env.GROQ_API_KEY : prompt("GROQ APIキーを入力してね♡ (GitHub Pages用、一時的に)"); // Vercel/Netlifyなら自動、GitHub Pagesならプロンプト
-    if (!GROQ_API_KEY) alert("APIキー入れてね♡");
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    // リロード防止
-    window.addEventListener('unhandledrejection', e => e.preventDefault());
-    window.addEventListener('error', e => e.preventDefault());
-
-    async function init() {
-        document.getElementById('progressText').textContent = '0%';
-        try {
-            engine = await CreateMLCEngine(model, {
-                initProgressCallback: info => {
-                    const percent = Math.round(info.progress * 100);
-                    document.getElementById('progressText').textContent = `${percent}%`;
-                    if (percent >= 100) document.getElementById('progressText').textContent = '100% 完了！♡';
-                }
-            });
-            document.getElementById('progressText').textContent = 'オフラインみりんてゃ準備完了！えへへ〜♡';
-        } catch (e) {
-            document.getElementById('progressText').textContent = 'オフライン失敗…Grokみりんてゃに切り替え中♡';
-            console.log("WebLLM失敗 → Grok API使用");
+        // Groq APIキー（Cloudflare Pagesの環境変数から自動取得）
+        const GROQ_API_KEY = import.meta.env ? import.meta.env.GROQ_API_KEY : null; // プロンプトなし！Cloudflareシークレットから自動
+        if (!GROQ_API_KEY && !engine) {
+            // 環境変数なしの場合のみプロンプト（開発者用）
+            const key = prompt("GROQ APIキーを入力してね♡ (開発者用)");
+            if (key) GROQ_API_KEY = key;
         }
-        document.getElementById('modelLoading').style.display = 'none';
-        document.getElementById('emopostForm').style.display = 'block';
-        document.getElementById('generateBtn').disabled = false;
-    }
-    init();
+
+        // リロード防止
+        window.addEventListener('unhandledrejection', e => e.preventDefault());
+        window.addEventListener('error', e => e.preventDefault());
+
+        async function init() {
+            document.getElementById('prog').textContent = '0%';
+            try {
+                engine = await CreateMLCEngine(model, {
+                    initProgressCallback: info => {
+                        const percent = Math.round(info.progress * 100);
+                        document.getElementById('prog').textContent = `${percent}%`;
+                        if (percent >= 100) document.getElementById('prog').textContent = '100% 完了！♡';
+                    }
+                });
+                document.getElementById('prog').textContent = 'オフラインみりんてゃ準備完了！えへへ〜♡';
+            } catch (e) {
+                document.getElementById('prog').textContent = 'オフライン失敗…Grokみりんてゃに切り替え中♡';
+                console.log("WebLLM失敗 → Grok API使用");
+            }
+            document.getElementById('load').style.display = 'none';
+            document.getElementById('form').style.display = 'block';
+        }
+        init();
 
         // メイン生成関数
         document.getElementById("gen").onclick = async () => {
@@ -110,17 +115,45 @@
             let poem = "えへへ〜♡ きみとふわふわなのっ♪\nずっときゅんきゅんしちゃうよ♡";
 
             // WebLLM成功してたら使う
-            if(engine) {
+            if (engine) {
                 try {
                     const res = await engine.chat.completions.create({
-                        messages: [{role:"system",content:"あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！"},{role:"user",content:kw}],
+                        messages: [
+                            {role:"system",content:"あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！"},
+                            {role:"user",content:kw}
+                        ],
                         temperature:0.85, max_tokens:150
                     });
                     poem = res.choices[0].message.content.trim();
-                } catch(e) {}
-            } else {
-                // WebLLM失敗 → Grok API
-                poem = await generateWithGrok(kw);
+                } catch (e) {
+                    console.log("WebLLM失敗 → Grok API切り替え");
+                }
+            } 
+
+            // WebLLM失敗 → Grok API（廃止モデル修正）
+            if (poem === "えへへ〜♡ きみとふわふわなのっ♪\nずっときゅんきゅんしちゃうよ♡") {
+                try {
+                    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${GROQ_API_KEY}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            model: "llama-3.1-8b-instant", // 廃止モデルを安定版に変更
+                            messages: [
+                                { role: "system", content: "あなたは「みりんてゃ」という超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！" },
+                                { role: "user", content: kw }
+                            ],
+                            temperature: 0.85,
+                            max_tokens: 150
+                        })
+                    });
+                    const data = await res.json();
+                    poem = data.choices[0].message.content.trim();
+                } catch (err) {
+                    poem = "えへへ〜♡ きみがだいすきなのっ♪\nふわふわハグしちゃうよ♡";
+                }
             }
 
             document.getElementById("ing").style.display = "none";
@@ -128,14 +161,6 @@
             document.getElementById("poem").textContent = poem;
             document.getElementById("btns").style.display = "flex";
         };
-
-        // 起動時にWebLLM試す
-        (async () => {
-            const success = await tryWebLLM();
-            if(!success) document.getElementById("prog").textContent = "ネットみりんてゃ準備完了！♡";
-            document.getElementById("load").style.display = "none";
-            document.getElementById("form").style.display = "block";
-        })();
 
         window.retry = () => location.reload();
         window.copy = () => navigator.clipboard.writeText(document.getElementById("poem").textContent).then(()=>alert("コピーしたよ♡"));
@@ -147,12 +172,10 @@
         // パーティクル
         const emo = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
-            if(!isMobile || document.getElementById("ing").style.display!=="block"){
-                const e = document.createElement("div"); e.className="e"; e.textContent=emo[Math.random()*emo.length|0];
-                e.style.left = Math.random()*100+"%";
-                document.getElementById("p").appendChild(e);
-                setTimeout(()=>e.remove(),16000);
-            }
+            const e = document.createElement("div"); e.className="e"; e.textContent=emo[Math.random()*emo.length|0];
+            e.style.left = Math.random()*100+"%";
+            document.getElementById("p").appendChild(e);
+            setTimeout(()=>e.remove(),16000);
         },1000);
     </script>
 </body>
