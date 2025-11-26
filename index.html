@@ -49,7 +49,7 @@
     </div>
     <div id="ing" class="c" style="display:none"><div class="s"></div><p>全力で紡いでるよ…♡</p></div>
 
-    <!-- 保存対象エリア（背景＋パーティクル＋ポエム全部入る！） -->
+    <!-- 保存対象エリア（広告は外す！！！） -->
     <div id="saveArea" style="display:none">
         <div id="r" class="c">
             <span class="copy" onclick="copy()">📋</span>
@@ -59,20 +59,23 @@
                 💡 スマホの方はこのエリア全体を長押し → 「画像を保存」してね♡<br>
                 <small>（背景もキラキラも全部入る最強の方法！）</small>
             </div>
-            <div style="margin:3em 0 2em;text-align:center">
-                <p style="font-size:0.95em;color:#d670d6;margin-bottom:0.8em">
-                    ポエム後はおせちで癒し♪
-                </p>
-                <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" 
-                   target="_blank" rel="nofollow sponsored noopener">
-                    <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" 
-                         border="0" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 6px 20px rgba(221,160,221,0.4)" 
-                         alt="楽天おせち2026 最大350円OFF！">
-                </a>
-                <p style="font-size:0.8em;color:#aaa;margin-top:0.5em">🎍 楽天おせち2026 最大350円OFF！</p>
-            </div>
         </div>
     </div>
+
+    <!-- ★★★★★ ここから広告（saveAreaの外に出した！！！） ★★★★★ -->
+    <div id="adArea" style="display:none;margin:3em 0 2em;text-align:center">
+        <p style="font-size:0.95em;color:#d670d6;margin-bottom:0.8em">
+            ポエム後はおせちで癒し♪
+        </p>
+        <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" 
+           target="_blank" rel="nofollow sponsored noopener">
+            <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" 
+                 border="0" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 6px 20px rgba(221,160,221,0.4)" 
+                 alt="楽天おせち2026 最大350円OFF！">
+        </a>
+        <p style="font-size:0.8em;color:#aaa;margin-top:0.5em">🎍 楽天おせち2026 最大350円OFF！</p>
+    </div>
+    <!-- ★★★★★ ここまで広告 ★★★★★ -->
 
     <div class="btns" id="btns" style="display:none">
         <button class="b" onclick="retry()">もう一度！♡</button>
@@ -140,6 +143,7 @@
             document.getElementById("ing").style.display = "none";
             document.getElementById("saveArea").style.display = "block";
             document.getElementById("r").style.display = "block";
+            document.getElementById("adArea").style.display = "block";  // ←これ追加！！
             document.getElementById("poem").textContent = poem;
             document.getElementById("btns").style.display = "flex";
         };
