@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GNTX973GET"></script>
@@ -32,16 +33,19 @@
         .c{max-width:500px;width:100%;margin:1em auto}
         .i{background:#fff;border-radius:1.5em;padding:2em;box-shadow:0 8px 20px #d8bfd8}
         input{width:100%;padding:1em;font-size:1.1em;border:2px solid #dda0dd;border-radius:1em;background:#fff8ff}
-        .b{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;padding:1em 2em;border-radius:2em;cursor:pointer;font-size:1.1em;margin:1em 0;box-shadow:0 6px 15px #dda0dd55}
+        
+        .b{background:linear-gradient(to right,#e6e6fa,#dda0dd);border:none;color:#fff;font-weight:bold;padding:1em 2em;border-radius:2em;cursor:pointer;font-size:1.1em;margin:1em 0;box-shadow:0 6px 15px #dda0dd55; width: 100%;}
         .b:hover{transform:translateY(-2px)}
+        .b-local{background:linear-gradient(to right,#d3d3d3,#a9a9a9); font-size:0.9em; margin-top: 0.5em; padding:0.8em 1.5em; box-shadow:0 4px 10px #aaaaaa55;}
+        
         #r{background:#f0f8ff;border:3px dashed #b0c4de;border-radius:2em;padding:2em;position:relative;box-shadow:0 8px 20px #e6e6fa;margin:2em 0}
         .copy{position:absolute;top:10px;right:10px;font-size:1.8em;cursor:pointer;background:#fff;padding:8px;border-radius:50%;box-shadow:0 2px 8px #ccc;z-index:10}
         .s{border:6px solid #f3f3f3;border-top:6px solid #dda0dd;border-radius:50%;width:60px;height:60px;animation:s 1s linear infinite;margin:2em auto}
         @keyframes s{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
         .btns{display:flex;gap:1em;justify-content:center;flex-wrap:wrap;margin:3em 0}
+        .btns button{width: auto;}
         .savehint{background:#fff8ff;padding:1.5em;border-radius:2em;margin:2em 0;box-shadow:0 8px 25px #dda0dd55;color:#d670d6;font-weight:bold}
         footer{margin-top:auto;padding:2em;background:#f0f8ff;width:100%;border-top:3px dashed #dda0dd}
-        #saveArea{padding:20px 10px;background:rgba(255,255,255,0.9);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.1)}
     </style>
 </head>
 <body>
@@ -49,15 +53,21 @@
     <h1><span class="g">今夜のエモポストメーカー 🌙✨</span></h1>
     <p class="c">今日の気分やキーワードを入れてね♡</p>
 
-    <div id="load" class="c"><div class="s"></div><p>AI呼び出し中〜♡</p><p id="prog">0%</p></div>
-    <div id="form" class="c i" style="display:none">
+    <!-- メインフォーム（最初はここだけ表示！） -->
+    <div id="form" class="c i">
         <input type="text" id="kw" placeholder="例：幸せ、夜空">
-        <button id="gen" class="b">生成！♡</button>
+        <button id="gen-server" class="b">サクッとAI生成！♡（おすすめ）</button>
+        <button id="gen-local" class="b b-local">端末の力で生成⚡️（※初回読込長め）</button>
     </div>
-    <div id="ing" class="c" style="display:none"><div class="s"></div><p>全力で紡いでるよ…♡</p></div>
+    
+    <!-- ローディング画面 -->
+    <div id="ing" class="c" style="display:none">
+        <div class="s"></div>
+        <p id="ing-text">全力で紡いでるよ…♡</p>
+        <p id="prog" style="font-size:0.9em; color:#999; margin-top:0.5em;"></p>
+    </div>
 
-    <!-- 保存対象エリア（広告は外す！！！） -->
-    <!-- 保存対象エリア（ポエム本体＋背景だけ！！！） -->
+    <!-- 保存対象エリア -->
     <div id="saveArea" style="display:none;padding:20px 10px;background:rgba(255,255,255,0.9);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.1)">
         <div id="purePoemArea" class="c" style="background:#f0f8ff;border:3px dashed #b0c4de;border-radius:2em;padding:2em;position:relative;box-shadow:0 8px 20px #e6e6fa">
             <h2 style="margin-bottom:1em">🌙今夜の夢ポエム♡</h2>
@@ -65,7 +75,7 @@
         </div>
     </div>
 
-    <!-- 表示用エリア（コピー・ヒント・広告はここ！！！） -->
+    <!-- 表示用エリア -->
     <div id="displayArea" style="display:none" class="c">
         <div id="r" style="background:#f0f8ff;border:3px dashed #b0c4de;border-radius:2em;padding:2em;position:relative;box-shadow:0 8px 20px #e6e6fa;margin:2em 0">
             <span class="copy" onclick="copy()">📋</span>
@@ -75,22 +85,15 @@
                 💡 スマホの方は画像保存ボタンを押して長押し → 「画像を保存」してね♡<br>
             </div>
         </div>
-
+        
         <!-- 広告 -->
         <div id="adArea" style="margin:3em 0 2em;text-align:center">
-            <p style="font-size:0.95em;color:#d670d6;margin-bottom:0.8em">
-                ポエム後はおせちで癒し♪
-            </p>
-            <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" 
-               target="_blank" rel="nofollow sponsored noopener">
-                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" 
-                     border="0" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 6px 20px rgba(221,160,221,0.4)" 
-                     alt="楽天おせち2026 最大350円OFF！">
+            <p style="font-size:0.95em;color:#d670d6;margin-bottom:0.8em">ポエム後はおせちで癒し♪</p>
+            <a href="https://hb.afl.rakuten.co.jp/hsc/4e336792.7c0b3872.3d95c766.8a7897b5/?link_type=pict&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJwaWN0IiwiY29sIjoxLCJjYXQiOiI1OCIsImJhbiI6MzIzMDk1MCwiYW1wIjpmYWxzZX0%3D" target="_blank" rel="nofollow sponsored noopener">
+                <img src="https://hbb.afl.rakuten.co.jp/hsb/4e336792.7c0b3872.3d95c766.8a7897b5/?me_id=1&me_adv_id=3230950&t=pict" border="0" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 6px 20px rgba(221,160,221,0.4)" alt="楽天おせち2026 最大350円OFF！">
             </a>
-            <p style="font-size:0.8em;color:#aaa;margin-top:0.5em">🎍 楽天おせち2026 最大350円OFF！</p>
         </div>
     </div>
-    <!-- ★★★★★ ここまで広告 ★★★★★ -->
 
     <div class="btns" id="btns" style="display:none">
         <button class="b" onclick="retry()">もう一度！♡</button>
@@ -101,71 +104,91 @@
     <footer><a href="https://mofu-mitsu.github.io/" style="color:#9370db;font-weight:bold">TOPへ戻る</a></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <!-- Web-LLM用のスクリプト（※みつきの環境に合わせてパスを調整してね） -->
     <script type="module" src="./web-tokenizers.js"></script>
     <script type="module" src="./web-llm.js"></script>
 
     <script type="module">
         import { CreateMLCEngine } from "./web-llm.js";
+        
         let engine = null;
         const model = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyv_Dn5oMZ_pPH5SqTXIt4OkDGzZG6nSVaKyaXA7F664vFkYAOaykOPoC8njF9bHMIe/exec";
 
-        async function init() {
-            try {
-                engine = await CreateMLCEngine(model, {
-                    initProgressCallback: i => document.getElementById("prog").textContent = Math.round(i.progress*100)+"%"
-                });
-                document.getElementById("prog").textContent = "オフラインみりんてゃ準備完了！♡";
-            } catch(e) {
-                document.getElementById("prog").textContent = "ネットみりんてゃに切り替え完了！♡";
-            }
-            document.getElementById("load").style.display = "none";
-            document.getElementById("form").style.display = "block";
-        }
-        init();
-
-        document.getElementById("gen").onclick = async () => {
-            const kw = document.getElementById("kw").value.trim() || "みりんてゃ";
-            document.getElementById("form").style.display = "none";
-            document.getElementById("ing").style.display = "block";
-
-            let poem = "えへへ〜♡ きみとふわふわなのっ♪\nずっときゅんきゅんしちゃうよ♡";
-
-            if (engine) {
-                try {
-                    const res = await engine.chat.completions.create({
-                        messages: [
-                            {role:"system",content:"あなたは超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！"},
-                            {role:"user",content:kw}
-                        ],
-                        temperature:0.85, max_tokens:150
-                    });
-                    poem = res.choices[0].message.content.trim();
-                } catch(e) {}
-            }
-
-            if (poem.includes("ずっときゅんきゅん")) {
-                try {
-                    const res = await fetch("/groq", {
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({keyword: kw})
-                    });
-                    const data = await res.json();
-                    poem = data.poem || "えへへ〜♡ ごめんね、ちょっと調子悪いの…♡";
-                } catch(e) {}
-            }
+        // ポエム表示処理（共通）
+        function showPoem(poemText) {
             document.getElementById("ing").style.display = "none";
-            document.getElementById("saveArea").style.display = "block";    // 保存用（超きれい）
-            document.getElementById("displayArea").style.display = "block"; // 表示用（ボタンとか全部）
-            document.getElementById("adArea").style.display = "block";
+            document.getElementById("saveArea").style.display = "block";    
+            document.getElementById("displayArea").style.display = "block"; 
             
-            // 両方にポエム入れる
-            document.getElementById("poem").textContent = poem;
-            document.getElementById("poemDisplay").textContent = poem;
+            document.getElementById("poem").textContent = poemText;
+            document.getElementById("poemDisplay").textContent = poemText;
             
             document.getElementById("btns").style.display = "flex";
+        }
+
+        // ① サーバー通信（GAS経由）で生成する関数
+        document.getElementById("gen-server").onclick = async () => {
+            const kw = document.getElementById("kw").value.trim() || "夜空";
+            document.getElementById("form").style.display = "none";
+            document.getElementById("ing").style.display = "block";
+            document.getElementById("ing-text").textContent = "サーバーAIに繋がり中…♡";
+            document.getElementById("prog").textContent = "";
+
+            let poem = "";
+            try {
+                // 💡 JSからGASへ通信する時、CORSエラーを回避するために 'text/plain' で送る裏ワザだよ！
+                const res = await fetch(GAS_URL, { 
+                    method: "POST",
+                    headers: {"Content-Type": "text/plain"}, 
+                    body: JSON.stringify({keyword: kw})
+                });
+                const data = await res.json();
+                poem = data.poem || "えへへ〜♡ ごめんね、ちょっとAIの調子が悪いの…♡";
+            } catch(e) {
+                console.error(e);
+                poem = "えへへ〜♡ ごめんね、通信エラーになっちゃったみたい…♡";
+            }
+            showPoem(poem);
         };
 
+        // ② Web-LLM（ローカル）で生成する関数
+        document.getElementById("gen-local").onclick = async () => {
+            const kw = document.getElementById("kw").value.trim() || "夜空";
+            document.getElementById("form").style.display = "none";
+            document.getElementById("ing").style.display = "block";
+            document.getElementById("ing-text").textContent = "端末の力で全力で紡いでるよ…♡";
+            
+            let poem = "えへへ〜♡ きみとふわふわなのっ♪\nずっときゅんきゅんしちゃうよ♡";
+
+            try {
+                // 初回のみモデルをダウンロードしてエンジン作成
+                if (!engine) {
+                    engine = await CreateMLCEngine(model, {
+                        initProgressCallback: i => {
+                            document.getElementById("prog").textContent = "AIモデル準備中: " + Math.round(i.progress*100) + "%";
+                        }
+                    });
+                    document.getElementById("prog").textContent = "AIモデル準備完了！♡";
+                }
+
+                const res = await engine.chat.completions.create({
+                    messages: [
+                        {role:"system",content:"あなたは超絶かわいいふわふわAI。必ず「えへへ〜♡」を入れて、キーワードを使って5行以内の超可愛い日本語ポエムだけを書く。説明も英語も一切禁止！"},
+                        {role:"user",content:kw}
+                    ],
+                    temperature:0.85, max_tokens:150
+                });
+                poem = res.choices[0].message.content.trim();
+            } catch(e) {
+                console.error(e);
+                poem = "えへへ〜♡ お使いの端末ではローカルAIが動かなかったみたい…♡";
+            }
+            showPoem(poem);
+        };
+
+        // UI周りの便利関数
         window.retry = () => location.reload();
         window.copy = () => navigator.clipboard.writeText(document.getElementById("poem").textContent).then(()=>alert("コピーしたよ♡"));
         window.share = () => {
@@ -173,9 +196,9 @@
             navigator.share?.({title:"今夜のエモポスト♡",text:t}) ?? open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t));
         };
 
-// 完全保存関数（修正版だよ♡）
+        // 画像保存関数
         window.saveAsImage = async () => {
-            const element = document.getElementById("saveArea");  // ←純粋なポエムだけ！
+            const element = document.getElementById("saveArea");  
             const btn = document.querySelector('button[onclick="saveAsImage()"]');
             btn.disabled = true;
             btn.textContent = "生成中…♡";
@@ -197,7 +220,6 @@
                 img.style.borderRadius = "20px";
                 img.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
 
-                // saveAreaの中身を画像に置き換え
                 const saveArea = document.getElementById("saveArea");
                 saveArea.innerHTML = "";
                 saveArea.appendChild(img);
@@ -210,12 +232,11 @@
                 if(!navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)){
                     const a = document.createElement('a');
                     a.href = dataURL;
-                    a.download = 'mirintya_poem_' + Date.now() + '.png';
+                    a.download = 'emopost_' + Date.now() + '.png';
                     a.click();
                 }
 
                 alert("画像に変換したよ♡ 長押しで保存してね！");
-
             } catch(e) {
                 console.error(e);
                 alert("保存失敗…ごめんね、もう一回試してみて♡");
@@ -224,7 +245,8 @@
                 btn.textContent = "画像保存📸";
             }
         };
-        // パーティクル
+        
+        // パーティクルアニメーション
         const emo = ['⭐','✨','🌙','💖','🌟','🦄','🌸','🎀'];
         setInterval(() => {
             const e = document.createElement("div"); 
